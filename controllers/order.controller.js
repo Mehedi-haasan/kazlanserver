@@ -2,6 +2,7 @@ const db = require("../models");
 const SaleOrder = db.saleorder;
 const UserDue = db.userdue;
 const ProductTemplate = db.productTemplete;
+const Notification = db.notification;
 const Op = db.Sequelize.Op;
 
 
@@ -42,9 +43,39 @@ exports.getOrder = async (req, res) => {
                 }
             ]
         })
+        let resdata = [];
+        let user = data?.length > 0 ? {
+            name: data[0]?.username,
+            contact: data[0]?.contact,
+            address: data[0]?.address,
+            date: data[0]?.date,
+            invoice_id: data[0]?.invoice_id,
+            discount: data[0]?.discount
+
+        } : null
+
+        data?.map((item) => {
+            resdata.push({
+                "id": item?.product?.id,
+                "active": null,
+                "product_type": true,
+                "categoryId": item?.product?.categoryId,
+                "name": item?.product?.name,
+                "description": item?.product?.description,
+                "image_url": item?.product?.image_url,
+                "cost": item?.product?.cost,
+                "price": item?.product?.price,
+                "standard_price": item?.product?.standard_price,
+                "qty": item?.qty,
+                "createdAt": "2025-02-20T17:50:42.000Z",
+                "updatedAt": "2025-02-20T17:53:22.000Z"
+            })
+        })
+
         res.status(200).send({
             success: true,
-            items: data
+            items: resdata,
+            user: user
         })
 
     } catch (error) {
@@ -186,8 +217,14 @@ exports.CreateOrder = async (req, res) => {
     try {
         const { orders, userId, amount } = req.body;
         await SaleOrder.bulkCreate(orders);
-        const data = await UpdateProduct(orders)
-        const userDue = await UserDueCreate(userId, amount)
+        const data = await UpdateProduct(orders);
+        const userDue = await UserDueCreate(userId, amount);
+        const notification = await Notification.create({
+            isSeen: 'false',
+            status: 'success',
+            userId: userId,
+            invoiceId: orders[0]?.invoice_id
+        });
         res.status(200).send({
             success: true,
             message: "Order Create Successfull",

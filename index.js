@@ -44,6 +44,7 @@ require('./routes/message.routes')(app);
 require('./routes/order.routes')(app);
 require('./routes/state.routes')(app);
 require('./routes/category')(app);
+require('./routes/notification.routes')(app);
 
 // db.sequelize.sync({ force: true }).then(async () => {
 //     // await initStates();

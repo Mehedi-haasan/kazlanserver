@@ -13,7 +13,7 @@ const sequelize = new Sequelize(config.DB, config.USER, config.PASSWORD, {
     acquire: config.pool.acquire,
     idle: config.pool.idle
   },
-  logging: true, // Disable logging for cleaner output
+  logging: false, // Disable logging for cleaner output
 });
 
 // Create `db` object
@@ -31,6 +31,7 @@ db.message = require("./message.model")(sequelize, Sequelize);
 db.state = require("./state.model")(sequelize, Sequelize);
 db.category = require("./category")(sequelize, Sequelize);
 db.userdue = require("./userDue")(sequelize, Sequelize);
+db.notification = require("./notification.model")(sequelize, Sequelize);
 
 // Sale Order Relationship
 db.productTemplete.hasMany(db.saleorder, {
@@ -79,6 +80,15 @@ db.category.hasMany(db.saleorder, {
 });
 db.saleorder.belongsTo(db.category, {
   foreignKey: "categoryId",
+  onDelete: 'CASCADE',
+});
+
+db.user.hasMany(db.notification, {
+  foreignKey: "userId",
+  onDelete: 'CASCADE',
+});
+db.notification.belongsTo(db.user, {
+  foreignKey: "userId",
   onDelete: 'CASCADE',
 });
 

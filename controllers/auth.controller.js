@@ -71,7 +71,7 @@ exports.singUp = async (req, res) => {
             order: [['id', 'DESC']]
         });
 
-        await RoleSetup(data?.rules, user?.id);
+        await RoleSetup(req?.body?.rules, user?.id);
 
 
         res.status(200).send({

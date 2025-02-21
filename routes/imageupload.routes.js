@@ -1,5 +1,6 @@
 const Jwt = require("../middleware/authentication");
 const upload = require('../multer/Upload')
+const BaseUrl = "https://portal.kazalandbrothers.xyz";
 
 const controller = require("../controllers/productTemplete.controller");
 
@@ -26,7 +27,7 @@ module.exports = function (app) {
 
             res.status(200).send({
                 success: true,
-                image_url: `http://localhost:8050/uploads/${image_url.filename}`
+                image_url: `${BaseUrl}/uploads/${image_url.filename}`
             });
         } catch (error) {
             res.status(500).send({
@@ -52,7 +53,7 @@ module.exports = function (app) {
 
             res.status(200).send({
                 success: true,
-                image_url: `http://localhost:8050/uploads/${image_url.filename}`
+                image_url: `${BaseUrl}/uploads/${image_url.filename}`
             });
         } catch (error) {
             res.status(500).send({
