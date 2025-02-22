@@ -1,6 +1,7 @@
 const db = require("../models");
 const SaleOrder = db.saleorder;
 const UserDue = db.userdue;
+const User = db.user;
 const ProductTemplate = db.productTemplete;
 const Notification = db.notification;
 const Op = db.Sequelize.Op;
@@ -40,17 +41,28 @@ exports.getOrder = async (req, res) => {
             include: [
                 {
                     model: ProductTemplate,
+                    
+                },
+                {
+                    model: User,
+                    include: [
+                        {
+                            model: db.state
+                        }
+                    ]
                 }
             ]
         })
+
         let resdata = [];
         let user = data?.length > 0 ? {
-            name: data[0]?.username,
+            name: data[0]?.user?.first_name + " " + data[0]?.user?.last_name,
             contact: data[0]?.contact,
-            address: data[0]?.address,
             date: data[0]?.date,
             invoice_id: data[0]?.invoice_id,
-            discount: data[0]?.discount
+            discount: data[0]?.discount,
+            state:data[0]?.user?.state?.name,
+            discountType: data[0]?.discountType,
 
         } : null
 

@@ -91,7 +91,7 @@ exports.UpdateProduct = async (req, res) => {
 
     for (const pro of updateProducts) {
       const product = await ProductTemplate.findOne({
-        where: { id: pro?.product_id },
+        where: { id: pro?.id },
       });
 
       if (product) {

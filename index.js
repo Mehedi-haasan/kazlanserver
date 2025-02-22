@@ -9,7 +9,12 @@ const server = http.createServer(app);
 const { Server } = require("socket.io");
 const io = new Server(server, {
     cors: {
-        origin: ['http://localhost:3000', 'http://localhost:3001', 'https://mehedi-haasan.github.io/'],
+        origin: [
+            'http://localhost:3000',
+            'https://kazalandbrothers.xyz',
+            'http://localhost:5173',
+            'http://localhost:3001'
+        ],
         methods: ['GET', 'POST', 'PATCH', 'DELETE'],
         credentials: true
     }
@@ -21,7 +26,13 @@ app.use(bodyParser.urlencoded({ extended: true }));
 
 
 const corsOptions = {
-    origin: ['http://localhost:3000', 'http://localhost:3001', 'https://mehedi-haasan.github.io'],
+    origin: [
+        'http://localhost:3000',
+        'https://kazalandbrothers.xyz',
+        'http://localhost:5173',
+        'http://localhost:3001'
+    ],
+
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     credentials: true,
     allowedHeaders: ['Content-Type', 'Authorization'], // Ensure "Authorization" is capitalized correctly
