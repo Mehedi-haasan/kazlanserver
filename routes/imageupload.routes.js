@@ -2,7 +2,6 @@ const Jwt = require("../middleware/authentication");
 const upload = require('../multer/Upload')
 const BaseUrl = "https://portal.kazalandbrothers.xyz";
 
-const controller = require("../controllers/productTemplete.controller");
 
 module.exports = function (app) {
     app.use(function (req, res, next) {
@@ -16,7 +15,6 @@ module.exports = function (app) {
     app.post("/api/upload/image", Jwt.verifyToken, upload.single('image_url'), async (req, res) => {
         try {
             const image_url = req.file;
-            console.log(image_url);
 
             if (!image_url) {
                 return res.status(400).send({
@@ -29,6 +27,7 @@ module.exports = function (app) {
                 success: true,
                 image_url: `${BaseUrl}/uploads/${image_url.filename}`
             });
+
         } catch (error) {
             res.status(500).send({
                 success: false,
@@ -41,7 +40,7 @@ module.exports = function (app) {
 
 
 
-    app.post("/api/upload/image/register",  upload.single('image_url'), async (req, res) => {
+    app.post("/api/upload/image/register", upload.single('image_url'), async (req, res) => {
         try {
             const image_url = req.file;
             if (!image_url) {

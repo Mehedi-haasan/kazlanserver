@@ -13,7 +13,7 @@ const sequelize = new Sequelize(config.DB, config.USER, config.PASSWORD, {
     acquire: config.pool.acquire,
     idle: config.pool.idle
   },
-  logging: false, // Disable logging for cleaner output
+  logging: true, // Disable logging for cleaner output
 });
 
 // Create `db` object
@@ -45,7 +45,7 @@ db.saleorder.belongsTo(db.productTemplete, {
 
 // State Relationship
 db.state.hasMany(db.user, {
-  foreignKey: "stateId",
+  foreignKey: "id",
   onDelete: 'CASCADE',
 });
 db.user.belongsTo(db.state, {

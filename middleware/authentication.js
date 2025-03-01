@@ -42,7 +42,7 @@ isPublicUser = async (req, res, next) => {
 
 
 isAdmin = async (req, res, next) => {
-    const rules = await Role.find({
+    const rules = await Role.findAll({
         where: {
             userId: req.userId
         }
@@ -61,7 +61,7 @@ isAdmin = async (req, res, next) => {
 };
 
 isModerator = async (req, res, next) => {
-    const rules = await Role.find({
+    const rules = await Role.findAll({
         where: {
             userId: req.userId
         }
@@ -80,7 +80,7 @@ isModerator = async (req, res, next) => {
 };
 
 isModeratorOrAdmin = async (req, res, next) => {
-    const rules = await Role.find({
+    const rules = await Role.findAll({
         where: {
             userId: req.userId
         }

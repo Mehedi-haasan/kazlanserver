@@ -35,7 +35,7 @@ const corsOptions = {
 
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     credentials: true,
-    allowedHeaders: ['Content-Type', 'Authorization'], // Ensure "Authorization" is capitalized correctly
+    allowedHeaders: ['Content-Type', 'authorization'], // Ensure "Authorization" is capitalized correctly
     preflightContinue: false,
     optionsSuccessStatus: 204, // Avoids unnecessary redirects
 };

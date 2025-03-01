@@ -94,6 +94,19 @@ exports.getStateWithUser = async (req, res) => {
 exports.CreateState = async (req, res) => {
     try {
 
+        const data = await State.findOne({
+            where: {
+                name: req.body.name
+            }
+        });
+
+        if (data) {
+            res.status(400).send({
+                success: false,
+                message: "State Already Exist"
+            })
+        }
+
         await State.create({
             name: req.body.name,
         });

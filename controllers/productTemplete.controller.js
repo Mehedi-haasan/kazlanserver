@@ -112,7 +112,7 @@ exports.UpdateProduct = async (req, res) => {
 
     res.status(200).send({
       success: true,
-      items: Products,
+      message: "Product updated successfully",
     });
   } catch (error) {
     res.status(500).send({ success: false, message: error.message });

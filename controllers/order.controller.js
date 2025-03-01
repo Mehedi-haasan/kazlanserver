@@ -41,7 +41,7 @@ exports.getOrder = async (req, res) => {
             include: [
                 {
                     model: ProductTemplate,
-                    
+
                 },
                 {
                     model: User,
@@ -54,6 +54,12 @@ exports.getOrder = async (req, res) => {
             ]
         })
 
+        let due = await UserDue.findOne({
+            where: {
+                userId: data[0]?.userId
+            }
+        })
+
         let resdata = [];
         let user = data?.length > 0 ? {
             name: data[0]?.user?.first_name + " " + data[0]?.user?.last_name,
@@ -61,8 +67,9 @@ exports.getOrder = async (req, res) => {
             date: data[0]?.date,
             invoice_id: data[0]?.invoice_id,
             discount: data[0]?.discount,
-            state:data[0]?.user?.state?.name,
+            state: data[0]?.user?.state?.name,
             discountType: data[0]?.discountType,
+            due: due?.amount || 0
 
         } : null
 
@@ -87,7 +94,8 @@ exports.getOrder = async (req, res) => {
         res.status(200).send({
             success: true,
             items: resdata,
-            user: user
+            user: user,
+            due: due
         })
 
     } catch (error) {
