@@ -24,6 +24,9 @@ module.exports = (sequelize, Sequelize) => {
         name: {
             type: Sequelize.STRING
         },
+        shop: {
+            type: Sequelize.STRING
+        },
         price: {
             type: Sequelize.INTEGER,
         },
@@ -37,6 +40,12 @@ module.exports = (sequelize, Sequelize) => {
             type: Sequelize.STRING,
         },
         sellprice: {
+            type: Sequelize.INTEGER,
+        },
+        previousdue: {
+            type: Sequelize.INTEGER,
+        },
+        payamount: {
             type: Sequelize.INTEGER,
         },
         qty: {

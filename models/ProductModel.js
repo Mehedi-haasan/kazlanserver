@@ -17,6 +17,9 @@ module.exports = (sequelize, Sequelize) => {
         name: {
             type: Sequelize.STRING
         },
+        shop: {
+            type: Sequelize.STRING
+        },
         description: {
             type: Sequelize.TEXT
         },
@@ -38,7 +41,7 @@ module.exports = (sequelize, Sequelize) => {
         product_type: {
             type: Sequelize.BOOLEAN,
         },
-        
+
     });
 
     return ProductTemplate;

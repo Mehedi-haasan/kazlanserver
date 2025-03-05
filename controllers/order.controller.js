@@ -4,6 +4,7 @@ const UserDue = db.userdue;
 const User = db.user;
 const ProductTemplate = db.productTemplete;
 const Notification = db.notification;
+const Invoice = db.invoice;
 const Op = db.Sequelize.Op;
 
 
@@ -235,15 +236,25 @@ const UserDueCreate = async (userId, amount) => {
 
 exports.CreateOrder = async (req, res) => {
     try {
-        const { orders, userId, amount } = req.body;
+        const { orders, userId, amount, total, previousdue, paidamount, date, invoice_id } = req.body;
         await SaleOrder.bulkCreate(orders);
         const data = await UpdateProduct(orders);
         const userDue = await UserDueCreate(userId, amount);
-        const notification = await Notification.create({
+        await Invoice.create({
+            date: date,
+            invoice_id: invoice_id,
+            userId: userId,
+            total: total,
+            previousdue: previousdue,
+            paidamount: paidamount,
+            due: (total + previousdue) - paidamount,
+            status: total <= paidamount ? 'PAID' : 'UNPAID'
+        });
+        await Notification.create({
             isSeen: 'false',
             status: 'success',
             userId: userId,
-            invoiceId: orders[0]?.invoice_id
+            invoiceId: invoice_id
         });
         res.status(200).send({
             success: true,

@@ -32,6 +32,7 @@ db.state = require("./state.model")(sequelize, Sequelize);
 db.category = require("./category")(sequelize, Sequelize);
 db.userdue = require("./userDue")(sequelize, Sequelize);
 db.notification = require("./notification.model")(sequelize, Sequelize);
+db.invoice = require("./invoice.model")(sequelize, Sequelize);
 
 // Sale Order Relationship
 db.productTemplete.hasMany(db.saleorder, {

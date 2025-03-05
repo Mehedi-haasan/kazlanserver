@@ -57,7 +57,7 @@ require('./routes/state.routes')(app);
 require('./routes/category')(app);
 require('./routes/notification.routes')(app);
 
-// db.sequelize.sync({ force: true }).then(async () => {
+// db.sequelize.sync({ force: false }).then(async () => {
 //     // await initStates();
 //     // await initUserRoles();
 //     // await initCarousel();
