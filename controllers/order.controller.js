@@ -237,9 +237,6 @@ const UserDueCreate = async (userId, amount) => {
 exports.CreateOrder = async (req, res) => {
     try {
         const { orders, userId, amount, total, previousdue, paidamount, date, invoice_id } = req.body;
-        await SaleOrder.bulkCreate(orders);
-        const data = await UpdateProduct(orders);
-        const userDue = await UserDueCreate(userId, amount);
         await Invoice.create({
             date: date,
             invoice_id: invoice_id,
@@ -250,6 +247,9 @@ exports.CreateOrder = async (req, res) => {
             due: (total + previousdue) - paidamount,
             status: total <= paidamount ? 'PAID' : 'UNPAID'
         });
+        await SaleOrder.bulkCreate(orders);
+        const data = await UpdateProduct(orders);
+        const userDue = await UserDueCreate(userId, amount);
         await Notification.create({
             isSeen: 'false',
             status: 'success',

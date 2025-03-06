@@ -93,4 +93,14 @@ db.notification.belongsTo(db.user, {
   onDelete: 'CASCADE',
 });
 
+
+db.invoice.hasMany(db.saleorder, {
+  foreignKey: "invoice_id",
+  onDelete: 'CASCADE',
+});
+db.saleorder.belongsTo(db.invoice, {
+  foreignKey: "invoice_id",
+  onDelete: 'CASCADE',
+});
+
 module.exports = db;
