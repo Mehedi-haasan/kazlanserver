@@ -36,7 +36,6 @@ const RoleSetup = async (rules, userId) => {
     }
 };
 
-
 exports.singUp = async (req, res) => {
     const body = req.body;
     try {
@@ -61,6 +60,8 @@ exports.singUp = async (req, res) => {
             first_name: req.body.first_name,
             last_name: req.body.last_name,
             email: req.body.email,
+            address:req.body.address,
+            whatsapp:req.body.whatsapp,
             password: bcrypt.hashSync(req.body.password, 8),
             image_url: req.body.image_url,
             stateId: req.body.stateId
@@ -84,7 +85,6 @@ exports.singUp = async (req, res) => {
     }
 
 }
-
 
 exports.singIn = async (req, res) => {
     try {
@@ -133,7 +133,6 @@ exports.singIn = async (req, res) => {
 
 }
 
-
 exports.getUsers = async (req, res) => {
     try {
         const data = await User.findAll({
@@ -162,7 +161,6 @@ exports.getUsers = async (req, res) => {
         res.status(500).send({ success: false, message: error.message });
     }
 };
-
 
 exports.getSingleUsers = async (req, res) => {
     try {
@@ -235,8 +233,6 @@ exports.UserDueCreate = async (req, res) => {
         res.status(500).send({ success: false, message: error.message });
     }
 };
-
-
 
 exports.UserDue = async (req, res) => {
     const id = req.params.id;
