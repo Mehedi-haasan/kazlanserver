@@ -9,23 +9,6 @@ const UserDue = db.userdue;
 const Op = db.Sequelize.Op;
 
 
-async function someAsyncOperation(rules) {
-    let roleId;
-
-    if (rules) {
-        if (rules[0] === "admin") {
-            roleId = 2;
-        } else if (rules[0] === "superadmin") {
-            roleId = 3;
-        } else if (rules[0] === "modarator") {
-            roleId = 4;
-        } else {
-            roleId = 1;
-        }
-    }
-    return roleId
-}
-
 const RoleSetup = async (rules, userId) => {
     if (!rules) return;
     for (const item of rules) {
@@ -56,15 +39,17 @@ exports.singUp = async (req, res) => {
         }
 
         await User.create({
-            username: req.body.username,
             first_name: req.body.first_name,
             last_name: req.body.last_name,
+            username: req.body.username,
+            whatsapp: req.body.whatsapp,
+            address: req.body.address,
             email: req.body.email,
-            address:req.body.address,
-            whatsapp:req.body.whatsapp,
+            stateId: req.body.stateId,
+            usertype: req.body.usertype,
+            cretedby: "Admin",
             password: bcrypt.hashSync(req.body.password, 8),
             image_url: req.body.image_url,
-            stateId: req.body.stateId
         });
 
 
@@ -123,7 +108,8 @@ exports.singIn = async (req, res) => {
         res.status(200).send({
             success: true,
             message: "Login Successfully",
-            id: req.userId,
+            name:data?.first_name,
+            role:"admin",
             accessToken: token,
         })
 
@@ -133,114 +119,11 @@ exports.singIn = async (req, res) => {
 
 }
 
-exports.getUsers = async (req, res) => {
+exports.ForgetPassword = async (req, res) => {
     try {
-        const data = await User.findAll({
+        let user = await User.findOne({
             where: {
-                stateId: req.params.stateId
-            },
-            attributes: ['id', 'first_name', 'last_name',]
-        });
-
-        let userData = [];
-
-
-        data?.map((da) => {
-            userData.push({
-                id: da?.id,
-                name: da?.first_name + " " + da?.last_name
-            })
-        })
-
-        res.status(200).send({
-            success: true,
-            items: userData,
-        });
-
-    } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
-    }
-};
-
-exports.getSingleUsers = async (req, res) => {
-    try {
-        const data = await User.findOne({
-            where: {
-                id: req.userId
-            }
-        })
-        res.status(200).send({
-            success: true,
-            items: data,
-        })
-
-    } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
-    }
-
-}
-
-exports.updateUsers = async (req, res) => {
-    const id = req.userId;
-    const { first_name, last_name, email, username, password, image_url, stateId } = req.body;
-
-    try {
-
-        await User.update(
-            {
-                first_name,
-                last_name,
-                username,
-                email,
-                password,
-                image_url,
-                stateId
-            },
-            {
-                where: { id }
-            }
-        );
-        res.status(200).send({
-            success: true,
-            message: "Update Successfulll",
-        });
-
-    } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
-    }
-};
-
-exports.UserDueCreate = async (req, res) => {
-    const { userId, amount } = req.body;
-
-    try {
-        const user = await UserDue.findOne({ where: { userId } });
-
-        if (user) {
-            await UserDue.update(
-                { amount: user.amount + amount },
-                { where: { userId } }
-            );
-        } else {
-            await UserDue.create({ userId, amount });
-        }
-
-        res.status(200).send({
-            success: true,
-            message: "Success",
-        });
-    } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
-    }
-};
-
-exports.UserDue = async (req, res) => {
-    const id = req.params.id;
-
-    try {
-        let user = await UserDue.findOne({
-            where: {
-                userId: id
+                email: req.body.email
             }
         });
         res.status(200).send({
@@ -251,8 +134,23 @@ exports.UserDue = async (req, res) => {
     } catch (error) {
         res.status(500).send({ success: false, message: error.message });
     }
-};
+}
 
+exports.OtpVarification = async (req, res) => {
+    try {
+        let user = await User.findOne({
+            where: {
+                email: req.body.email
+            }
+        });
+        res.status(200).send({
+            success: true,
+            items: user,
+        });
 
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+}
 
 

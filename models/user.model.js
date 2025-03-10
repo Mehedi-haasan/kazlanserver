@@ -14,24 +14,31 @@ module.exports = (sequelize, Sequelize) => {
         username: {
             type: Sequelize.STRING
         },
-        email: {
-            type: Sequelize.STRING
-        },
         whatsapp: {
             type: Sequelize.STRING
         },
         address: {
             type: Sequelize.STRING
         },
+        email: {
+            type: Sequelize.STRING
+        },
+        stateId: {
+            type: Sequelize.INTEGER,
+        },
+        usertype: {
+            type: Sequelize.STRING
+        },
+        cretedby: {
+            type: Sequelize.STRING
+        },
         password: {
             type: Sequelize.STRING
         },
-        image_url:{
+        image_url: {
             type: Sequelize.STRING,
         },
-        stateId:{
-            type: Sequelize.INTEGER,
-        }
+
     });
 
     return User;

@@ -32,7 +32,7 @@ module.exports = (sequelize, Sequelize) => {
         price: {
             type: Sequelize.INTEGER
         },
-        standard_price: {
+        brandId: {
             type: Sequelize.INTEGER
         },
         qty: {

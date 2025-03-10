@@ -3,6 +3,10 @@ const bodyParser = require("body-parser");
 const cors = require('cors');
 const app = express();
 const port = 8050;
+const db = require('./models');
+const State = db.state;
+const Category = db.category;
+const Brand = db.brand;
 
 const http = require('http');
 const server = http.createServer(app);
@@ -35,9 +39,9 @@ const corsOptions = {
 
     methods: ['GET', 'POST', 'PATCH', 'DELETE'],
     credentials: true,
-    allowedHeaders: ['Content-Type', 'authorization'], // Ensure "Authorization" is capitalized correctly
+    allowedHeaders: ['Content-Type', 'authorization'],
     preflightContinue: false,
-    optionsSuccessStatus: 204, // Avoids unnecessary redirects
+    optionsSuccessStatus: 204,
 };
 
 
@@ -45,7 +49,8 @@ app.use(cors(corsOptions));
 
 app.use('/uploads', express.static('uploads'));
 
-const db = require("./models");
+
+require('./routes/auth.routes')(app);
 require('./routes/user.routes')(app);
 require('./routes/ProductTemplate.routes')(app);
 require('./routes/company.routes')(app);
@@ -55,10 +60,12 @@ require('./routes/message.routes')(app);
 require('./routes/order.routes')(app);
 require('./routes/state.routes')(app);
 require('./routes/category')(app);
+require('./routes/brand.routes')(app);
 require('./routes/notification.routes')(app);
 
-// db.sequelize.sync({ force: false }).then(async () => {
-//     // await initStates();
+
+// db.sequelize.sync({ force: true }).then(async () => {
+//     await initStates();
 //     // await initUserRoles();
 //     // await initCarousel();
 //     // await initCategories();
@@ -66,57 +73,20 @@ require('./routes/notification.routes')(app);
 //     // await initProductAttributeValues();
 // });
 
+const initStates = async () => {
+    State.create({
+        name: "Dhaka",
+    });
+    Category.create({
+        name: "Book",
+        image_url: "https://cdn-icons-png.flaticon.com/128/149/149071.png"
+    });
+    Brand.create({
+        name: "Book",
+        image_url: "https://cdn-icons-png.flaticon.com/128/149/149071.png"
+    });
+}
 
-
-const DB = require('./models');
-const Message = DB.message;
-
-const socketUserMap = new Map();
-const userSocketMap = new Map();
-
-// io.on('connection', (socket) => {
-
-
-//     socket.on('login', (userId) => {
-//         socketUserMap.set(socket.id, userId);
-//         userSocketMap.set(userId, socket.id);
-//     });
-
-//     socket.on('logout', () => {
-//         const userId = socketUserMap.get(socket.id);
-//         if (userId) {
-//             userSocketMap.delete(userId);
-//             socketUserMap.delete(socket.id);
-//         }
-//     });
-
-//     socket.on('create-message', async (data, callback) => {
-//         const { senderId, recieverId, message } = data;
-
-
-//         try {
-//             await Message.create({ senderId, recieverId, message });
-
-//             const receiverSocketId = userSocketMap.get(recieverId);
-//             if (receiverSocketId) {
-//                 io.to(receiverSocketId).emit('receive-message', { senderId, message });
-//             }
-
-//             callback({ status: 'success', message: 'Message sent successfully' });
-//         } catch (error) {
-//             console.error('Error saving message:', error);
-//             callback({ status: 'error', message: 'Could not save message' });
-//         }
-//     });
-
-//     socket.on('disconnect', () => {
-//         const userId = socketUserMap.get(socket.id);
-//         if (userId) {
-//             userSocketMap.delete(userId);
-//             socketUserMap.delete(socket.id);
-//         }
-//     });
-// });
 
 server.listen(port, () => {
     console.log(`Server is running on port ${port}`);

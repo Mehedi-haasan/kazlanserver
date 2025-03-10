@@ -2,7 +2,7 @@
 const config = {
     HOST: "localhost",
     USER: "root",
-    PASSWORD: "ceevit250",
+    PASSWORD: "ceevit250#",
     DB: "kazland_brother",
     dialect: "mysql",
     pool: {

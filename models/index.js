@@ -33,6 +33,7 @@ db.category = require("./category")(sequelize, Sequelize);
 db.userdue = require("./userDue")(sequelize, Sequelize);
 db.notification = require("./notification.model")(sequelize, Sequelize);
 db.invoice = require("./invoice.model")(sequelize, Sequelize);
+db.brand = require("./brand.model")(sequelize, Sequelize);
 
 // Sale Order Relationship
 db.productTemplete.hasMany(db.saleorder, {
@@ -84,6 +85,7 @@ db.saleorder.belongsTo(db.category, {
   onDelete: 'CASCADE',
 });
 
+
 db.user.hasMany(db.notification, {
   foreignKey: "userId",
   onDelete: 'CASCADE',
@@ -100,6 +102,16 @@ db.invoice.hasMany(db.saleorder, {
 });
 db.saleorder.belongsTo(db.invoice, {
   foreignKey: "invoice_id",
+  onDelete: 'CASCADE',
+});
+
+
+db.brand.hasMany(db.productTemplete, {
+  foreignKey: "id",
+  onDelete: 'CASCADE',
+});
+db.productTemplete.belongsTo(db.brand, {
+  foreignKey: "brandId",
   onDelete: 'CASCADE',
 });
 
