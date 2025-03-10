@@ -6,8 +6,11 @@ const Brand = db.brand;
 exports.getBrand = async (req, res) => {
     try {
         let data = await Brand.findAll({
-            limit:15,
+            limit: 15,
             attributes: ['id', 'name', 'image_url'],
+            where: {
+                createdby: req.userId
+            }
         })
         res.status(200).send({
             success: true,
@@ -41,10 +44,10 @@ exports.CreateBrand = async (req, res) => {
 }
 
 
-exports.updateBrand = async (req, res)=>{
+exports.updateBrand = async (req, res) => {
     try {
-        const { id, name,image_url } = req.body;
-        
+        const { id, name, image_url } = req.body;
+
         if (!id) {
             return res.status(400).send({
                 success: false,
@@ -52,10 +55,10 @@ exports.updateBrand = async (req, res)=>{
             });
         }
 
-        
+
         const [updatedRowsCount] = await Brand.update(
-            { name: name, image_url: image_url }, 
-            { where: { id: id } } 
+            { name: name, image_url: image_url },
+            { where: { id: id } }
         );
 
         if (updatedRowsCount === 0) {
@@ -72,5 +75,5 @@ exports.updateBrand = async (req, res)=>{
 
     } catch (error) {
         res.status(500).send({ success: false, message: error.message });
-    } 
+    }
 }

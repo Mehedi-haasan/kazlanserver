@@ -16,6 +16,8 @@ module.exports = function (app) {
     app.patch("/api/update/single/users", [jwt.verifyToken], controller.updateUsers);
     app.get("/api/users/due/:id", controller.UserDue);
     app.patch("/api/users/due/update", controller.UserDueCreate);
+
+
     app.get("/api/get/customer", [jwt.verifyToken], controller.getCustomer);
-    app.get("/api/get/supplier", controller.getSupplier);
+    app.get("/api/get/supplier", [jwt.verifyToken], controller.getSupplier);
 };

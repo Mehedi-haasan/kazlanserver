@@ -1,12 +1,10 @@
 const express = require('express');
 const bodyParser = require("body-parser");
+const bcrypt = require("bcryptjs");
 const cors = require('cors');
 const app = express();
 const port = 8050;
 const db = require('./models');
-const State = db.state;
-const Category = db.category;
-const Brand = db.brand;
 
 const http = require('http');
 const server = http.createServer(app);
@@ -74,17 +72,36 @@ require('./routes/notification.routes')(app);
 // });
 
 const initStates = async () => {
-    State.create({
+    await db.state.create({
         name: "Dhaka",
     });
-    Category.create({
+    await db.category.create({
         name: "Book",
-        image_url: "https://cdn-icons-png.flaticon.com/128/149/149071.png"
+        image_url: "https://cdn-icons-png.flaticon.com/128/149/149071.png",
+        createdby: 1
     });
-    Brand.create({
-        name: "Book",
-        image_url: "https://cdn-icons-png.flaticon.com/128/149/149071.png"
+    await db.brand.create({
+        name: "Matadoor",
+        image_url: "https://cdn-icons-png.flaticon.com/128/149/149071.png",
+        createdby: 1
     });
+    await db.user.create({
+        first_name: "Mahfuzur",
+        last_name: "Rahman",
+        username: "01782205566",
+        whatsapp: "1234567890",
+        address: "Dhaka Uttara",
+        email: "mahfuzur1316@gmail.com",
+        stateId: 1,
+        usertype: "customer",
+        cretedby: 1,
+        password: bcrypt.hashSync("1234560", 8),
+        image_url: "https://cdn-icons-png.flaticon.com/128/149/149071.png",
+    })
+    await db.role.create({
+        userId:1,
+        name:'admin'
+    })
 }
 
 

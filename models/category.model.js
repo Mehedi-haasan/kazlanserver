@@ -1,5 +1,5 @@
 module.exports = (sequelize, Sequelize) => {
-    const ProductCategory = sequelize.define("category", {
+    const Category = sequelize.define("category", {
         id: {
             type: Sequelize.INTEGER,
             primaryKey: true,
@@ -11,18 +11,14 @@ module.exports = (sequelize, Sequelize) => {
         name: {
             type: Sequelize.STRING
         },
+        createdby: {
+            type: Sequelize.INTEGER
+        },
         image_url: {
             type: Sequelize.STRING
         }
     });
 
-    return ProductCategory;
+    return Category;
 };
 
-
-// CREATE TABLE product_category (
-//     id INT AUTO_INCREMENT PRIMARY KEY,
-//     active BOOLEAN,
-//     name VARCHAR(255),
-//     image_url VARCHAR(255)
-// );

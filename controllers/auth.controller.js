@@ -47,7 +47,7 @@ exports.singUp = async (req, res) => {
             email: req.body.email,
             stateId: req.body.stateId,
             usertype: req.body.usertype,
-            cretedby: "Admin",
+            cretedby: req.userId,
             password: bcrypt.hashSync(req.body.password, 8),
             image_url: req.body.image_url,
         });

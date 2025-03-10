@@ -17,9 +17,6 @@ module.exports = (sequelize, Sequelize) => {
         name: {
             type: Sequelize.STRING
         },
-        shop: {
-            type: Sequelize.STRING
-        },
         description: {
             type: Sequelize.TEXT
         },
@@ -35,12 +32,12 @@ module.exports = (sequelize, Sequelize) => {
         brandId: {
             type: Sequelize.INTEGER
         },
-        qty: {
+        createdby: {
             type: Sequelize.INTEGER
         },
-        product_type: {
-            type: Sequelize.BOOLEAN,
-        },
+        qty: {
+            type: Sequelize.INTEGER
+        }
 
     });
 

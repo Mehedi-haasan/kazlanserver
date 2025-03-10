@@ -17,7 +17,7 @@ module.exports = function (app) {
 
     app.patch("/api/update/product", [Jwt.verifyToken, Jwt.isAdmin], controller.UpdateProduct);
 
-    app.get("/api/get/product/templete", controller.getProductTemplete);
+    app.get("/api/get/product/templete", Jwt.verifyToken, controller.getProductTemplete);
     app.get("/api/get/product/search/:product", controller.searchProduct);
 
     // app.get("/api/get/product", controller.getProductVariant);

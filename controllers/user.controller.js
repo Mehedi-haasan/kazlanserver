@@ -13,7 +13,7 @@ exports.getUsers = async (req, res) => {
     try {
         const data = await User.findAll({
             where: {
-                stateId: req.params.stateId
+                cretedby: req.userId
             },
             attributes: ['id', 'first_name', 'last_name',]
         });
@@ -37,11 +37,15 @@ exports.getUsers = async (req, res) => {
         res.status(500).send({ success: false, message: error.message });
     }
 };
+
+
+
 exports.getCustomer = async (req, res) => {
     try {
         const data = await User.findAll({
             where: {
-                usertype: "customer"
+                usertype: "customer",
+                cretedby:req.userId
             },
             attributes: ['id', 'first_name', 'last_name',]
         });
@@ -69,7 +73,8 @@ exports.getSupplier = async (req, res) => {
     try {
         const data = await User.findAll({
             where: {
-                usertype: "supplier"
+                usertype: "supplier",
+                cretedby:req.userId
             },
             attributes: ['id', 'first_name', 'last_name',]
         });

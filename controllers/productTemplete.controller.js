@@ -1,16 +1,6 @@
 const db = require("../models");
-const ProductTemplate = db.productTemplete;
-const { Sequelize, QueryTypes, where } = require("sequelize");
-const sequelize = db.sequelize;
+const ProductTemplate = db.product;
 const Op = db.Sequelize.Op;
-
-
-function getFormattedDate() {
-  const date = new Date();
-  const options = { day: 'numeric', month: 'long', year: 'numeric' };
-  return date.toLocaleDateString('en-GB', options);
-}
-
 
 
 exports.createProduct = async (req, res) => {
@@ -19,7 +9,8 @@ exports.createProduct = async (req, res) => {
 
     const data = await ProductTemplate.findOne({
       where: {
-        name: req.body.name
+        name: req.body.name,
+        createdby: req.userId
       }
     })
 
@@ -32,16 +23,16 @@ exports.createProduct = async (req, res) => {
 
     await ProductTemplate.create({
       acitve: 1,
-      sequence: "10",
+      product_type: req.body.product_type,
       categoryId: req.body.categoryId,
       name: req.body.name,
       description: req.body.description,
       image_url: req.body.image_url,
       cost: req.body.cost,
       price: req.body.price,
-      standard_price: req.body.standard_price,
+      brandId: req.body.brandId,
+      createdby: req.userId,
       qty: req.body.qty,
-      product_type: true,
     })
 
     res.status(200).send({
@@ -124,7 +115,9 @@ exports.UpdateProduct = async (req, res) => {
 exports.getProductTemplete = async (req, res) => {
   try {
     let data = await ProductTemplate.findAll({
-
+      where: {
+        createdby: req.userId
+      }
     })
 
     res.status(200).send({

@@ -30,7 +30,7 @@ module.exports = (sequelize, Sequelize) => {
             type: Sequelize.STRING
         },
         cretedby: {
-            type: Sequelize.STRING
+            type: Sequelize.INTEGER
         },
         password: {
             type: Sequelize.STRING

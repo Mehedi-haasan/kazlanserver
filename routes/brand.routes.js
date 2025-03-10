@@ -11,7 +11,7 @@ module.exports = function (app) {
     });
 
     app.post("/api/create/brand", [jwt.verifyToken, jwt.isAdmin], controller.CreateBrand);
-    app.get("/api/get/brand", controller.getBrand);
+    app.get("/api/get/brand", jwt.verifyToken, controller.getBrand);
     app.patch("/api/update/brand", [jwt.verifyToken, jwt.isAdmin], controller.updateBrand);
 
 
