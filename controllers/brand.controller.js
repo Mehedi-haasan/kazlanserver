@@ -1,5 +1,6 @@
 const db = require("../models");
 const Brand = db.brand;
+const deletePhoto = require('../controllers/filedelete.controller')
 
 
 
@@ -47,7 +48,7 @@ exports.CreateBrand = async (req, res) => {
 
 exports.updateBrand = async (req, res) => {
     try {
-        const { id, name, image_url } = req.body;
+        const { id, name, image_url, url } = req.body;
 
         if (!id) {
             return res.status(400).send({
@@ -68,7 +69,7 @@ exports.updateBrand = async (req, res) => {
                 message: "Order not found or status is already the same."
             });
         }
-
+        deletePhoto(url)
         res.status(200).send({
             success: true,
             message: `Updated successfully`,
@@ -78,3 +79,35 @@ exports.updateBrand = async (req, res) => {
         res.status(500).send({ success: false, message: error.message });
     }
 }
+
+
+exports.DeleteBrand = async (req, res) => {
+    try {
+        const { id, url } = req.body;
+
+        if (!id) {
+            return res.status(400).send({
+                success: false,
+                message: "Brand ID is required."
+            });
+        }
+
+        const deletedRowsCount = await Brand.destroy({ where: { id } });
+
+        if (deletedRowsCount === 0) {
+            return res.status(404).send({
+                success: false,
+                message: "Brand not found."
+            });
+        }
+        deletePhoto(url)
+        res.status(200).send({
+            success: true,
+            message: "Brand deleted successfully.",
+        });
+
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+};
+

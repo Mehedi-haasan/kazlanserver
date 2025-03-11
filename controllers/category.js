@@ -1,7 +1,6 @@
 const db = require("../models");
 const Category = db.category;
-const ProductTemplate = db.product
-const ProductCategory = db.category
+const deletePhoto = require('../controllers/filedelete.controller')
 const Op = db.Sequelize.Op;
 
 
@@ -89,7 +88,7 @@ exports.CreateCategory = async (req, res) => {
 
 exports.updateCategory = async (req, res) => {
     try {
-        const { id, name, image_url } = req.body;
+        const { id, name, image_url, url } = req.body;
 
         if (!id) {
             return res.status(400).send({
@@ -110,7 +109,7 @@ exports.updateCategory = async (req, res) => {
                 message: "Order not found or status is already the same."
             });
         }
-
+        deletePhoto(url)
         res.status(200).send({
             success: true,
             message: `Updated successfully`,
@@ -122,14 +121,14 @@ exports.updateCategory = async (req, res) => {
 }
 
 exports.DeleteCategory = async (req, res) => {
-
+    const { id, url } = req.body;
     try {
         await Category.destroy({
             where: {
-                id: req.params.id
+                id: id
             }
         });
-
+        deletePhoto(url)
         res.status(200).send({
             success: true,
             message: "Category Delete Successfully"

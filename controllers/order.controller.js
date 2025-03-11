@@ -1,3 +1,4 @@
+const { where } = require("sequelize");
 const db = require("../models");
 const SaleOrder = db.saleorder;
 const UserDue = db.userdue;
@@ -284,9 +285,13 @@ exports.CreateOrder = async (req, res) => {
     }
 }
 
-exports.getYearlyOrder = async (req, res) => {
+exports.RecentInvoice = async (req, res) => {
     try {
-        let data = await SaleOrder.findAll({})
+        let data = await Invoice.findAll({
+            where: {
+                createdby: req?.userId
+            }
+        })
         res.status(200).send({
             success: true,
             items: data

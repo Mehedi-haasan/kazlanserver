@@ -20,5 +20,5 @@ module.exports = function (app) {
     app.get('/api/get/order/today', controller.getTodatOrder);
 
 
-    app.get('/api/get/user/order/:tran_id', jwt.verifyToken, controller.getYearlyOrder);
+    app.get('/api/get/user/recent/order', jwt.verifyToken, controller.RecentInvoice);
 }

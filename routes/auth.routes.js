@@ -1,5 +1,6 @@
 const jwt = require('../middleware/authentication')
 const controller = require("../controllers/auth.controller");
+const deletePhoto = require('../controllers/filedelete.controller')
 
 module.exports = function (app) {
     app.use(function (req, res, next) {
@@ -22,5 +23,11 @@ module.exports = function (app) {
             message: "Deploy Successfulll",
         });
     });
-
+    app.get("/delete", (req, res) => {
+        deletePhoto('1741675917207-book.png')
+        res.status(200).send({
+            success: true,
+            message: "Delete Successfulll",
+        });
+    });
 };

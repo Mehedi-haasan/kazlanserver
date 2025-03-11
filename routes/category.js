@@ -14,6 +14,6 @@ module.exports = function (app) {
     app.get("/api/get/category",jwt.verifyToken, controller.getCategory);
     app.get("/api/get/category/by/productValue", controller.getCategoryByProduct);
     app.patch("/api/update/category", [jwt.verifyToken, jwt.isAdmin], controller.updateCategory);
-    app.delete("/api/delete/category/by/:id", [jwt.verifyToken, jwt.isAdmin], controller.DeleteCategory);
+    app.post("/api/delete/category", [jwt.verifyToken, jwt.isAdmin], controller.DeleteCategory);
 
 };
