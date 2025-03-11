@@ -11,7 +11,7 @@ module.exports = (sequelize, Sequelize) => {
         shop: {
             type: Sequelize.STRING
         },
-        invoice_id: {
+        createdby: {
             type: Sequelize.INTEGER
         },
         userId: {

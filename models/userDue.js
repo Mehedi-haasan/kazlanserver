@@ -13,6 +13,9 @@ module.exports = (sequelize, Sequelize) => {
         },
         amount: {
             type: Sequelize.INTEGER
+        },
+        createdby: {
+            type: Sequelize.INTEGER
         }
     });
 

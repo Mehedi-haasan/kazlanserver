@@ -1,7 +1,7 @@
 const db = require("../models");
 const Category = db.category;
-const ProductTemplate = db.productTemplete
-const ProductCategory = db.productCategory
+const ProductTemplate = db.product
+const ProductCategory = db.category
 const Op = db.Sequelize.Op;
 
 
@@ -26,42 +26,42 @@ exports.getCategory = async (req, res) => {
 }
 
 exports.getCategoryByProduct = async (req, res) => {
-    try {
-        const products = await ProductTemplate.findAll({
-            attributes: ['id', 'name', 'image_url', 'description', 'price'],
-            include: [
-                {
-                    model: ProductCategory,
-                    attributes: ['id', 'name'], // Include id attribute for ProductCategory
-                },
-            ],
-        });
+    // try {
+    //     const products = await ProductTemplate.findAll({
+    //         attributes: ['id', 'name', 'image_url', 'description', 'price'],
+    //         include: [
+    //             {
+    //                 model: ProductCategory,
+    //                 attributes: ['id', 'name'], // Include id attribute for ProductCategory
+    //             },
+    //         ],
+    //     });
 
-        // Group products by category
-        const groupedProducts = products.reduce((acc, product) => {
-            const category = product.product_category.name; // Assuming category association is properly defined
-            if (!acc[category]) {
-                acc[category] = [];
-            }
-            acc[category].push(product);
-            return acc;
-        }, {});
+    //     // Group products by category
+    //     const groupedProducts = products.reduce((acc, product) => {
+    //         const category = product.product_category.name; // Assuming category association is properly defined
+    //         if (!acc[category]) {
+    //             acc[category] = [];
+    //         }
+    //         acc[category].push(product);
+    //         return acc;
+    //     }, {});
 
-        // Convert groupedProducts object to array of objects
-        const result = Object.keys(groupedProducts).map(category => ({
-            id: groupedProducts[category][0].product_category.id, // Assuming each category has the same id for all products in it
-            name: category,
-            value: groupedProducts[category]
-        }));
+    //     // Convert groupedProducts object to array of objects
+    //     const result = Object.keys(groupedProducts).map(category => ({
+    //         id: groupedProducts[category][0].product_category.id, // Assuming each category has the same id for all products in it
+    //         name: category,
+    //         value: groupedProducts[category]
+    //     }));
 
-        res.status(200).send({
-            success: true,
-            items: result
-        });
-    } catch (error) {
-        console.error('Error fetching products by category:', error);
-        res.status(500).send({ success: false, message: error.message });
-    }
+    //     res.status(200).send({
+    //         success: true,
+    //         items: result
+    //     });
+    // } catch (error) {
+    //     console.error('Error fetching products by category:', error);
+    //     res.status(500).send({ success: false, message: error.message });
+    // }
 };
 
 
@@ -71,7 +71,8 @@ exports.CreateCategory = async (req, res) => {
     try {
         await Category.create({
             name: req.body.name,
-            image_url: req.body.image_url
+            image_url: req.body.image_url,
+            createdby: req.userId
         });
 
         res.status(200).send({

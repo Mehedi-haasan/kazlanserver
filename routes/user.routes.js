@@ -11,7 +11,9 @@ module.exports = function (app) {
     });
 
     app.get("/api/get/users", [jwt.verifyToken], controller.getUsers);
-    app.get("/api/get/users/:stateId", controller.getUsers);
+    app.get("/api/get/users/:stateId",[jwt.verifyToken], controller.getUsersbyState);
+
+    
     app.get("/api/get/single/users", [jwt.verifyToken], controller.getSingleUsers);
     app.patch("/api/update/single/users", [jwt.verifyToken], controller.updateUsers);
     app.get("/api/users/due/:id", controller.UserDue);

@@ -2,7 +2,7 @@ const db = require("../models");
 const SaleOrder = db.saleorder;
 const UserDue = db.userdue;
 const User = db.user;
-const ProductTemplate = db.productTemplete;
+const ProductTemplate = db.product;
 const Notification = db.notification;
 const Invoice = db.invoice;
 const Op = db.Sequelize.Op;
@@ -214,7 +214,7 @@ const UpdateProduct = async (orders) => {
 };
 
 
-const UserDueCreate = async (userId, amount) => {
+const UserDueCreate = async (userId, amount, createdby) => {
 
     try {
         const user = await UserDue.findOne({ where: { userId } });
@@ -225,7 +225,7 @@ const UserDueCreate = async (userId, amount) => {
                 { where: { userId } }
             );
         } else {
-            await UserDue.create({ userId, amount });
+            await UserDue.create({ userId, amount, createdby });
         }
 
         return 0
@@ -236,10 +236,11 @@ const UserDueCreate = async (userId, amount) => {
 
 exports.CreateOrder = async (req, res) => {
     try {
-        const { orders, userId, amount, total, previousdue, paidamount, date, invoice_id } = req.body;
-        await Invoice.create({
+        const { orders, userId, amount, total, previousdue, paidamount, date } = req.body;
+        const invoice = await Invoice.create({
             date: date,
-            invoice_id: invoice_id,
+            shop: "main",
+            createdby: req.userId,
             userId: userId,
             total: total,
             previousdue: previousdue,
@@ -247,14 +248,28 @@ exports.CreateOrder = async (req, res) => {
             due: (total + previousdue) - paidamount,
             status: total <= paidamount ? 'PAID' : 'UNPAID'
         });
-        await SaleOrder.bulkCreate(orders);
-        const data = await UpdateProduct(orders);
-        const userDue = await UserDueCreate(userId, amount);
+        if (!invoice || !invoice.id) {
+            return res.status(400).send({ success: false, message: "Failed to create invoice" });
+        }
+
+        // Assign the correct invoice_id to each order
+        const updatedOrders = orders.map(order => ({
+            ...order,
+            invoice_id: invoice.id
+        }));
+
+        // Bulk insert sale orders with the correct invoice_id
+        await SaleOrder.bulkCreate(updatedOrders);
+
+        // Update product stock
+        const data = await UpdateProduct(updatedOrders);
+        const userDue = await UserDueCreate(userId, amount, req?.userId);
         await Notification.create({
             isSeen: 'false',
             status: 'success',
             userId: userId,
-            invoiceId: invoice_id
+            invoiceId: invoice.id,
+            createdby: req?.userId
         });
         res.status(200).send({
             success: true,

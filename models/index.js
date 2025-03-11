@@ -106,22 +106,4 @@ db.saleorder.belongsTo(db.invoice, {
 });
 
 
-db.brand.hasMany(db.product, {
-  foreignKey: "id",
-  onDelete: 'CASCADE',
-});
-db.product.belongsTo(db.brand, {
-  foreignKey: "brandId",
-  onDelete: 'CASCADE',
-});
-
-db.user.hasMany(db.product, {
-  foreignKey: "id",
-  onDelete: 'CASCADE',
-});
-db.product.belongsTo(db.user, {
-  foreignKey: "createdby",
-  onDelete: 'CASCADE',
-});
-
 module.exports = db;

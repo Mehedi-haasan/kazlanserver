@@ -15,6 +15,7 @@ module.exports = function (app) {
     app.post("/api/auth/signup", [jwt.verifyToken, jwt.isAdmin], controller.singUp);
     app.post("/api/forget/password", controller.ForgetPassword);
     app.post("/api/otp/varification", controller.OtpVarification);
+    
     app.get("/", (req, res) => {
         res.status(200).send({
             success: true,

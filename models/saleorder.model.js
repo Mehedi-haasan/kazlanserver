@@ -32,22 +32,10 @@ module.exports = (sequelize, Sequelize) => {
         },
         discount: {
             type: Sequelize.INTEGER,
-        },
-        discountType: {
-            type: Sequelize.STRING,
-        },
-        discountamount: {
-            type: Sequelize.STRING,
-        },
+        }, 
         sellprice: {
             type: Sequelize.INTEGER,
-        },
-        previousdue: {
-            type: Sequelize.INTEGER,
-        },
-        payamount: {
-            type: Sequelize.INTEGER,
-        },
+        }, 
         qty: {
             type: Sequelize.INTEGER,
         },

@@ -8,42 +8,10 @@ const db = require('./models');
 
 const http = require('http');
 const server = http.createServer(app);
-const { Server } = require("socket.io");
-const io = new Server(server, {
-    cors: {
-        origin: [
-            'http://localhost:3000',
-            'https://kazalandbrothers.xyz',
-            'http://localhost:5173',
-            'http://localhost:3001'
-        ],
-        methods: ['GET', 'POST', 'PATCH', 'DELETE'],
-        credentials: true
-    }
-});
-
-
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-
-const corsOptions = {
-    origin: [
-        'http://localhost:3000',
-        'https://kazalandbrothers.xyz',
-        'http://localhost:5173',
-        'http://localhost:3001'
-    ],
-
-    methods: ['GET', 'POST', 'PATCH', 'DELETE'],
-    credentials: true,
-    allowedHeaders: ['Content-Type', 'authorization'],
-    preflightContinue: false,
-    optionsSuccessStatus: 204,
-};
-
-
-app.use(cors(corsOptions));
+app.use(cors());
 
 app.use('/uploads', express.static('uploads'));
 
@@ -62,8 +30,8 @@ require('./routes/brand.routes')(app);
 require('./routes/notification.routes')(app);
 
 
-// db.sequelize.sync({ force: true }).then(async () => {
-//     await initStates();
+// db.sequelize.sync({ force: false }).then(async () => {
+//     // await initStates();
 //     // await initUserRoles();
 //     // await initCarousel();
 //     // await initCategories();
@@ -74,6 +42,7 @@ require('./routes/notification.routes')(app);
 const initStates = async () => {
     await db.state.create({
         name: "Dhaka",
+        cretedby: 1
     });
     await db.category.create({
         name: "Book",
@@ -99,8 +68,8 @@ const initStates = async () => {
         image_url: "https://cdn-icons-png.flaticon.com/128/149/149071.png",
     })
     await db.role.create({
-        userId:1,
-        name:'admin'
+        userId: 1,
+        name: 'admin'
     })
 }
 

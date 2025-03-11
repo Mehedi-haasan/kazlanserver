@@ -16,6 +16,9 @@ module.exports = (sequelize, Sequelize) => {
         },
         invoiceId: {
             type: Sequelize.INTEGER
+        },
+        createdby: {
+            type: Sequelize.INTEGER
         }
     });
 

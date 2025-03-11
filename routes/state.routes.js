@@ -10,8 +10,8 @@ module.exports = function (app) {
         next();
     });
 
-    app.post("/api/create/state", controller.CreateState);
-    app.get("/api/get/state", controller.getState);
+    app.post("/api/create/state", jwt.verifyToken, controller.CreateState);
+    app.get("/api/get/state", jwt.verifyToken, controller.getState);
     app.get("/api/get/state/with/user", controller.getStateWithUser);
     app.delete("/api/delete/state/:id", controller.DeleteState);
 

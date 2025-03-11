@@ -18,19 +18,38 @@ exports.getUsers = async (req, res) => {
             attributes: ['id', 'first_name', 'last_name',]
         });
 
-        let userData = [];
-
-
-        data?.map((da) => {
-            userData.push({
-                id: da?.id,
-                name: da?.first_name + " " + da?.last_name
-            })
-        })
-
         res.status(200).send({
             success: true,
-            items: userData,
+            items: data,
+        });
+
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+};
+
+
+exports.getUsersbyState = async (req, res) => {
+    try {
+        const data = await User.findAll({
+            where: {
+                stateId: req.params.stateId
+            },
+            attributes: ['id', 'first_name', 'last_name', 'username']
+        });
+
+        let user = []
+
+        data?.map((it) => {
+            user.push({
+                id: it?.id,
+                name: `${it?.first_name} ${it?.last_name}`,
+                username: it?.username
+            })
+        })
+        res.status(200).send({
+            success: true,
+            items: user,
         });
 
     } catch (error) {
@@ -45,24 +64,13 @@ exports.getCustomer = async (req, res) => {
         const data = await User.findAll({
             where: {
                 usertype: "customer",
-                cretedby:req.userId
-            },
-            attributes: ['id', 'first_name', 'last_name',]
+                cretedby: req.userId
+            }
         });
-
-        let userData = [];
-
-
-        data?.map((da) => {
-            userData.push({
-                id: da?.id,
-                name: da?.first_name + " " + da?.last_name
-            })
-        })
 
         res.status(200).send({
             success: true,
-            items: userData,
+            items: data,
         });
 
     } catch (error) {
@@ -74,24 +82,13 @@ exports.getSupplier = async (req, res) => {
         const data = await User.findAll({
             where: {
                 usertype: "supplier",
-                cretedby:req.userId
-            },
-            attributes: ['id', 'first_name', 'last_name',]
+                cretedby: req.userId
+            }
         });
-
-        let userData = [];
-
-
-        data?.map((da) => {
-            userData.push({
-                id: da?.id,
-                name: da?.first_name + " " + da?.last_name
-            })
-        })
 
         res.status(200).send({
             success: true,
-            items: userData,
+            items: data,
         });
 
     } catch (error) {

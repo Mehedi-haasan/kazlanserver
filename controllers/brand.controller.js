@@ -29,12 +29,13 @@ exports.CreateBrand = async (req, res) => {
     try {
         await Brand.create({
             name: req.body.name,
-            image_url: req.body.image_url
+            image_url: req.body.image_url,
+            createdby: req.userId
         });
 
         res.status(200).send({
             success: true,
-            message: "Create Category Successfully"
+            message: "Create Brand Successfully"
         })
 
     } catch (error) {
