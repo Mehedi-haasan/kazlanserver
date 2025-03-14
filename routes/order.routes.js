@@ -12,13 +12,12 @@ module.exports = function (app) {
     app.get('/api/get/order', controller.getAllOrder);
     app.get('/api/get/order/:id', controller.getOrder);
     app.get('/api/get/order/daily/salse', controller.getDailySalse);
-
     app.post('/api/post/order', jwt.verifyToken, controller.CreateOrder);
-
-
-    app.get('/api/get/user/order/monthly', controller.getMonthlyOrder);
-    app.get('/api/get/order/today', controller.getTodatOrder);
-
-
+    app.get('/api/get/user/order/monthly', jwt.verifyToken, controller.getMonthlyOrder);
+    app.get('/api/get/order/today', jwt.verifyToken, controller.getTodatOrder);
     app.get('/api/get/user/recent/order', jwt.verifyToken, controller.RecentInvoice);
-}
+
+
+    app.post('/api/return/sale', jwt.verifyToken, controller.ReturnSale)
+    app.post('/api/return/purchase', jwt.verifyToken, controller.ReturnPurchase)
+}    

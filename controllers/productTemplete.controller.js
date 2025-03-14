@@ -1,6 +1,7 @@
 const db = require("../models");
 const ProductTemplate = db.product;
 const Op = db.Sequelize.Op;
+const deletePhoto = require('./filedelete.controller')
 
 
 exports.createProduct = async (req, res) => {
@@ -46,6 +47,56 @@ exports.createProduct = async (req, res) => {
 
 }
 
+exports.getProductTemplete = async (req, res) => {
+  try {
+    let data = await ProductTemplate.findAll({
+      where: {
+        createdby: req.userId
+      }
+    })
+
+    res.status(200).send({
+      success: true,
+      items: data,
+    });
+  } catch (error) {
+    res.status(500).send({ success: false, message: error.message });
+  }
+};
+
+exports.updateSingleProduct = async (req, res) => {
+  try {
+      const { id, name, image_url, url } = req.body;
+
+      if (!id) {
+          return res.status(400).send({
+              success: false,
+              message: "Order ID and status are required."
+          });
+      }
+
+
+      const [updatedRowsCount] = await Brand.update(
+          { name: name, image_url: image_url },
+          { where: { id: id } }
+      );
+
+      if (updatedRowsCount === 0) {
+          return res.status(404).send({
+              success: false,
+              message: "Order not found or status is already the same."
+          });
+      }
+      deletePhoto(url)
+      res.status(200).send({
+          success: true,
+          message: `Updated successfully`,
+      });
+
+  } catch (error) {
+      res.status(500).send({ success: false, message: error.message });
+  }
+}
 
 exports.searchProduct = async (req, res) => {
   const searchTerm = req.params.product;
@@ -67,8 +118,6 @@ exports.searchProduct = async (req, res) => {
     res.status(500).send({ success: false, message: error.message });
   }
 };
-
-
 
 exports.UpdateProduct = async (req, res) => {
   const updateProducts = req.body;
@@ -110,47 +159,32 @@ exports.UpdateProduct = async (req, res) => {
   }
 };
 
-
-
-exports.getProductTemplete = async (req, res) => {
+exports.DeleteProduct = async (req, res) => {
   try {
-    let data = await ProductTemplate.findAll({
-      where: {
-        createdby: req.userId
+      const { id, url } = req.body;
+
+      if (!id) {
+          return res.status(400).send({
+              success: false,
+              message: "Brand ID is required."
+          });
       }
-    })
 
-    res.status(200).send({
-      success: true,
-      items: data,
-    });
-  } catch (error) {
-    res.status(500).send({ success: false, message: error.message });
-  }
-};
+      const deletedRowsCount = await ProductTemplate.destroy({ where: { id } });
 
-exports.DeleteProductTemplate = async (req, res) => {
-  const { id } = req.body;
-  try {
-    const deletedCount = await ProductTemplate.destroy({
-      where: { id: id }
-    });
-
-    if (deletedCount > 0) {
+      if (deletedRowsCount === 0) {
+          return res.status(404).send({
+              success: false,
+              message: "Brand not found."
+          });
+      }
+      deletePhoto(url)
       res.status(200).send({
-        success: true,
-        message: `ProductTemplate with id ${id} deleted successfully.`,
+          success: true,
+          message: "Brand deleted successfully.",
       });
-    } else {
-      res.status(404).send({
-        success: false,
-        message: `No ProductTemplate found with id ${id}.`,
-      });
-    }
+
   } catch (error) {
-    res.status(500).send({
-      success: false,
-      message: error.message,
-    });
+      res.status(500).send({ success: false, message: error.message });
   }
 };

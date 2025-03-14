@@ -20,15 +20,6 @@ module.exports = function (app) {
     app.get("/api/get/product/templete", Jwt.verifyToken, controller.getProductTemplete);
     app.get("/api/get/product/search/:product", controller.searchProduct);
 
-    // app.get("/api/get/product", controller.getProductVariant);
-
-
-    // app.get("/api/get/single/product/variant/:id", controller.getProductSingleVariant);
-
-    // app.get("/api/get/product/trending", controller.getTrendingProduct);
-
-    // app.get("/api/get/product/templete/by/category/:id", controller.getProductTempleteByCategory);
-    // app.get("/api/get/product/variant/:id", controller.getProductVariant);
-    // app.delete("/api/delete/product/",Jwt.verifyToken, controller.DeleteProductTemplate);
+    app.post("/api/delete/product", [Jwt.verifyToken, Jwt.isAdmin], controller.DeleteProduct);
 
 };

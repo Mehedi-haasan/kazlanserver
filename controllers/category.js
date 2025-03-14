@@ -109,7 +109,9 @@ exports.updateCategory = async (req, res) => {
                 message: "Order not found or status is already the same."
             });
         }
-        deletePhoto(url)
+        if (url) {
+            deletePhoto(url)
+        }
         res.status(200).send({
             success: true,
             message: `Updated successfully`,

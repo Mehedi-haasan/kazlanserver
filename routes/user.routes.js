@@ -22,4 +22,5 @@ module.exports = function (app) {
 
     app.get("/api/get/customer", [jwt.verifyToken], controller.getCustomer);
     app.get("/api/get/supplier", [jwt.verifyToken], controller.getSupplier);
+    app.get("/api/get/shop", [jwt.verifyToken], controller.getShop);
 };

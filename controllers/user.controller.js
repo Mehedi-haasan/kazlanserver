@@ -18,9 +18,23 @@ exports.getUsers = async (req, res) => {
             attributes: ['id', 'first_name', 'last_name',]
         });
 
+        let user = [];
+        data?.map((item) => {
+            user.push({
+                id: item?.id,
+                name: `${item?.first_name} ${item?.last_name}`,
+                username: item?.username,
+                whatsapp: item?.whatsapp,
+                address: item?.address,
+                email: item?.email,
+                image_url: item?.image_url,
+                cretedby: item?.cretedby
+            })
+        })
+
         res.status(200).send({
             success: true,
-            items: data,
+            items: user,
         });
 
     } catch (error) {
@@ -68,9 +82,23 @@ exports.getCustomer = async (req, res) => {
             }
         });
 
+        let user = [];
+        data?.map((item) => {
+            user.push({
+                id: item?.id,
+                name: `${item?.first_name} ${item?.last_name}`,
+                username: item?.username,
+                whatsapp: item?.whatsapp,
+                address: item?.address,
+                email: item?.email,
+                image_url: item?.image_url,
+                cretedby: item?.cretedby
+            })
+        })
+
         res.status(200).send({
             success: true,
-            items: data,
+            items: user,
         });
 
     } catch (error) {
@@ -82,6 +110,40 @@ exports.getSupplier = async (req, res) => {
         const data = await User.findAll({
             where: {
                 usertype: "supplier",
+                cretedby: req.userId
+            }
+        });
+
+        let user = [];
+        data?.map((item) => {
+            user.push({
+                id: item?.id,
+                name: `${item?.first_name} ${item?.last_name}`,
+                username: item?.username,
+                whatsapp: item?.whatsapp,
+                address: item?.address,
+                email: item?.email,
+                image_url: item?.image_url,
+                cretedby: item?.cretedby
+            })
+        })
+
+        res.status(200).send({
+            success: true,
+            items: user,
+        });
+
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+};
+
+
+exports.getShop = async (req, res) => {
+    try {
+        const data = await User.findAll({
+            where: {
+                usertype: "shop",
                 cretedby: req.userId
             }
         });

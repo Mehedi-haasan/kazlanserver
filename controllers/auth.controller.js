@@ -105,11 +105,18 @@ exports.singIn = async (req, res) => {
             expiresIn: 86400, // 24 hours
         });
 
+        let role = await Role.findOne({
+            where: {
+                userId: data?.id
+            }
+        })
+
         res.status(200).send({
             success: true,
             message: "Login Successfully",
-            name:data?.first_name,
-            role:"admin",
+            name: data?.first_name,
+            role: role?.name,
+            id: data?.id,
             accessToken: token,
         })
 

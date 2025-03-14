@@ -13,7 +13,7 @@ const sequelize = new Sequelize(config.DB, config.USER, config.PASSWORD, {
     acquire: config.pool.acquire,
     idle: config.pool.idle
   },
-  logging: true, // Disable logging for cleaner output
+  logging: false, // Disable logging for cleaner output
 });
 
 // Create `db` object

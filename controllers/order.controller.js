@@ -1,9 +1,8 @@
-const { where } = require("sequelize");
 const db = require("../models");
 const SaleOrder = db.saleorder;
 const UserDue = db.userdue;
 const User = db.user;
-const ProductTemplate = db.product;
+const Product = db.product;
 const Notification = db.notification;
 const Invoice = db.invoice;
 const Op = db.Sequelize.Op;
@@ -16,7 +15,7 @@ exports.getAllOrder = async (req, res) => {
             limit: 14,
             include: [
                 {
-                    model: ProductTemplate,
+                    model: Product,
 
                 }
             ],
@@ -42,7 +41,7 @@ exports.getOrder = async (req, res) => {
             },
             include: [
                 {
-                    model: ProductTemplate,
+                    model: Product,
 
                 },
                 {
@@ -120,7 +119,7 @@ exports.getTodatOrder = async (req, res) => {
             },
             include: [
                 {
-                    model: ProductTemplate,
+                    model: Product,
                 }
             ]
         })
@@ -187,12 +186,12 @@ const UpdateProduct = async (orders) => {
         const Products = [];
 
         for (const pro of updateProducts) {
-            const product = await ProductTemplate.findOne({
+            const product = await Product.findOne({
                 where: { id: pro?.product_id },
             });
 
             if (product) {
-                await ProductTemplate.update(
+                await Product.update(
                     {
                         qty: parseInt(product?.qty) - parseInt(pro?.qty),
                     },
@@ -350,6 +349,104 @@ exports.getMonthlyOrder = async (req, res) => {
 };
 
 
+exports.ReturnSale = async (req, res) => {
+    const { data, invoiceId } = req.body;
+
+    // Validate request body
+    if (!Array.isArray(data) || data.length === 0) {
+        return res.status(400).send({
+            success: false,
+            message: "Invalid or empty product update data",
+        });
+    }
+
+    if (!invoiceId) {
+        return res.status(400).send({
+            success: false,
+            message: "Invoice ID is required",
+        });
+    }
+
+    try {
+        for (const pro of data) {
+            const product = await Product.findOne({ where: { id: pro?.id } });
+
+            if (product) {
+                // Ensure valid numbers for quantity calculation
+                const currentQty = parseInt(product.qty) || 0;
+                const returnQty = parseInt(pro?.qty) || 0;
+                const updatedQty = currentQty + returnQty;
+
+                await Product.update({ qty: updatedQty }, { where: { id: product.id } });
+            } else {
+                console.log(`Product with ID ${pro?.id} not found`);
+            }
+        }
+
+        // Fetch invoice details
+        const InvoiceData = await Invoice.findOne({ where: { id: invoiceId } });
+        if (!InvoiceData) {
+            return res.status(404).send({
+                success: false,
+                message: "Invoice not found",
+            });
+        }
+
+        // Fetch user due details
+        const due = await UserDue.findOne({ where: { userId: InvoiceData?.userId } });
+        if (due) {
+            const updatedDue = Math.max(0, (parseInt(due.amount) || 0) - (parseInt(InvoiceData.paidamount) || 0));
+            await UserDue.update({ amount: updatedDue }, { where: { userId: InvoiceData.userId } });
+        }
+
+        // Delete invoice and related records
+        await Invoice.destroy({ where: { id: invoiceId } });
+        await SaleOrder.destroy({ where: { invoice_id: invoiceId } });
+        await Notification.destroy({ where: { invoiceId: invoiceId } });
+
+        res.status(200).send({
+            success: true,
+            message: "Product returned successfully",
+        });
+    } catch (error) {
+        console.error("Error in ReturnSale:", error);
+        res.status(500).send({ success: false, message: error.message });
+    }
+};
 
 
+exports.ReturnPurchase = async (req, res) => {
+    const { data } = req.body;
+
+    if (!Array.isArray(data) || data.length === 0) {
+        return res.status(400).send({
+            success: false,
+            message: "Invalid or empty product update data",
+        });
+    }
+
+    try {
+        for (const pro of data) {
+            const product = await Product.findOne({ where: { id: pro?.id } });
+
+            if (product) {
+                const currentQty = parseInt(product.qty) || 0;
+                const returnQty = parseInt(pro?.qty) || 0;
+                const updatedQty = currentQty - returnQty;
+
+                await Product.update({ qty: updatedQty }, { where: { id: product.id } });
+            } else {
+                console.log(`Product with ID ${pro?.id} not found`);
+            }
+        }
+
+        res.status(200).send({
+            success: true,
+            message: "Product returned successfully",
+        });
+    } catch (error) {
+        console.error("Error in ReturnSale:", error);
+        res.status(500).send({ success: false, message: error.message });
+    }
+};
 
