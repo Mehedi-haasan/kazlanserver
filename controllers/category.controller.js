@@ -1,6 +1,6 @@
 const db = require("../models");
 const Category = db.category;
-const deletePhoto = require('../controllers/filedelete.controller')
+const deletePhoto = require('./filedelete.controller')
 const Op = db.Sequelize.Op;
 
 

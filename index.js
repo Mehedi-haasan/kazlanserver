@@ -18,14 +18,14 @@ app.use('/uploads', express.static('uploads'));
 
 require('./routes/auth.routes')(app);
 require('./routes/user.routes')(app);
-require('./routes/ProductTemplate.routes')(app);
+require('./routes/product.routes')(app);
 require('./routes/company.routes')(app);
 require('./routes/imageupload.routes')(app);
 require('./routes/payment.routes')(app);
 require('./routes/message.routes')(app);
 require('./routes/order.routes')(app);
 require('./routes/state.routes')(app);
-require('./routes/category')(app);
+require('./routes/category.routes')(app);
 require('./routes/brand.routes')(app);
 require('./routes/notification.routes')(app);
 

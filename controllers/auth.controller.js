@@ -102,7 +102,7 @@ exports.singIn = async (req, res) => {
         const token = jwt.sign({ id: data.id }, config.secret, {
             algorithm: 'HS256',
             allowInsecureKeySizes: true,
-            expiresIn: 86400, // 24 hours
+            expiresIn: 86400 * 30, // 30 days
         });
 
         let role = await Role.findOne({
