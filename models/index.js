@@ -24,16 +24,16 @@ db.sequelize = sequelize;
 // Import models
 db.user = require("./user.model")(sequelize, Sequelize);
 db.role = require("./role.model")(sequelize, Sequelize);
-db.product = require("./ProductModel")(sequelize, Sequelize);
+db.product = require("./product.model")(sequelize, Sequelize);
 db.saleorder = require("./saleorder.model")(sequelize, Sequelize);
 db.company = require("./company.model")(sequelize, Sequelize);
 db.message = require("./message.model")(sequelize, Sequelize);
 db.state = require("./state.model")(sequelize, Sequelize);
 db.category = require("./category.model")(sequelize, Sequelize);
-db.userdue = require("./userDue")(sequelize, Sequelize);
 db.notification = require("./notification.model")(sequelize, Sequelize);
 db.invoice = require("./invoice.model")(sequelize, Sequelize);
 db.brand = require("./brand.model")(sequelize, Sequelize);
+db.customer = require("./customer.model")(sequelize, Sequelize);
 
 // Sale Order Relationship
 db.product.hasMany(db.saleorder, {
@@ -56,21 +56,11 @@ db.user.belongsTo(db.state, {
 });
 
 // Sale Order Relationship
-db.user.hasMany(db.saleorder, {
+db.customer.hasMany(db.saleorder, {
   foreignKey: "userId",
   onDelete: 'CASCADE',
 });
-db.saleorder.belongsTo(db.user, {
-  foreignKey: "userId",
-  onDelete: 'CASCADE',
-});
-
-// User Due Relationship
-db.user.hasMany(db.userdue, {
-  foreignKey: "userId",
-  onDelete: 'CASCADE',
-});
-db.userdue.belongsTo(db.user, {
+db.saleorder.belongsTo(db.customer, {
   foreignKey: "userId",
   onDelete: 'CASCADE',
 });
@@ -86,11 +76,11 @@ db.saleorder.belongsTo(db.category, {
 });
 
 
-db.user.hasMany(db.notification, {
+db.customer.hasMany(db.notification, {
   foreignKey: "userId",
   onDelete: 'CASCADE',
 });
-db.notification.belongsTo(db.user, {
+db.notification.belongsTo(db.customer, {
   foreignKey: "userId",
   onDelete: 'CASCADE',
 });

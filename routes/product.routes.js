@@ -1,7 +1,7 @@
 const Jwt = require("../middleware/authentication");
 const upload = require('../multer/Upload')
 
-const controller = require("../controllers/productTemplete.controller");
+const controller = require("../controllers/product.controller");
 
 module.exports = function (app) {
     app.use(function (req, res, next) {

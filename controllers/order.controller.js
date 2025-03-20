@@ -1,6 +1,7 @@
 const db = require("../models");
 const SaleOrder = db.saleorder;
 const UserDue = db.userdue;
+const Customer = db.customer;
 const User = db.user;
 const Product = db.product;
 const Notification = db.notification;
@@ -37,7 +38,8 @@ exports.getOrder = async (req, res) => {
         let data = await SaleOrder.findAll({
             limit: 10,
             where: {
-                invoice_id: req.params.id
+                invoice_id: req.params.id,
+                createdby: req?.userId
             },
             include: [
                 {
@@ -115,7 +117,8 @@ exports.getTodatOrder = async (req, res) => {
     try {
         let data = await SaleOrder.findAll({
             where: {
-                date: getFormattedDate()
+                date: getFormattedDate(),
+                createdby: req?.userId
             },
             include: [
                 {
@@ -214,18 +217,16 @@ const UpdateProduct = async (orders) => {
 };
 
 
-const UserDueCreate = async (userId, amount, createdby) => {
+const UserDueCreate = async (userId, amount) => {
 
     try {
-        const user = await UserDue.findOne({ where: { userId } });
+        const user = await Customer.findOne({ where: { id: userId } });
 
         if (user) {
-            await UserDue.update(
-                { amount: user.amount + amount },
-                { where: { userId } }
+            await Customer.update(
+                { balance: user.balance + amount },
+                { where: { id: userId } }
             );
-        } else {
-            await UserDue.create({ userId, amount, createdby });
         }
 
         return 0
@@ -236,10 +237,10 @@ const UserDueCreate = async (userId, amount, createdby) => {
 
 exports.CreateOrder = async (req, res) => {
     try {
-        const { orders, userId, amount, total, previousdue, paidamount, date } = req.body;
+        const { shop, orders, userId, amount, total, previousdue, paidamount, date } = req.body;
         const invoice = await Invoice.create({
             date: date,
-            shop: "main",
+            shop: shop,
             createdby: req.userId,
             userId: userId,
             total: total,
@@ -255,7 +256,8 @@ exports.CreateOrder = async (req, res) => {
         // Assign the correct invoice_id to each order
         const updatedOrders = orders.map(order => ({
             ...order,
-            invoice_id: invoice.id
+            invoice_id: invoice.id,
+            createdby: req?.userId
         }));
 
         // Bulk insert sale orders with the correct invoice_id
@@ -263,7 +265,7 @@ exports.CreateOrder = async (req, res) => {
 
         // Update product stock
         const data = await UpdateProduct(updatedOrders);
-        const userDue = await UserDueCreate(userId, amount, req?.userId);
+        const userDue = await UserDueCreate(userId, amount);
         await Notification.create({
             isSeen: 'false',
             status: 'success',
@@ -322,7 +324,8 @@ exports.getMonthlyOrder = async (req, res) => {
 
         let data = await SaleOrder.findAll({
             where: {
-                createdAt: { [Op.gte]: firstDayOfMonth }
+                createdAt: { [Op.gte]: firstDayOfMonth },
+                createdby: req?.userId
             },
             limit: 500,
             order: [["createdAt", "DESC"]]

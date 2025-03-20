@@ -1,8 +1,8 @@
-const { resolve } = require("path");
 const db = require("../models");
 const User = db.user;
 const Product = db.product;
 const UserDue = db.userdue;
+const { Op } = require("sequelize");
 
 
 exports.getUsers = async (req, res) => {
@@ -11,26 +11,47 @@ exports.getUsers = async (req, res) => {
             where: {
                 cretedby: req.userId
             },
-            attributes: ['id', 'first_name', 'last_name',]
+            attributes: ['id', 'name']
         });
 
-        let user = [];
-        data?.map((item) => {
-            user.push({
-                id: item?.id,
-                name: `${item?.first_name} ${item?.last_name}`,
-                username: item?.username,
-                whatsapp: item?.whatsapp,
-                address: item?.address,
-                email: item?.email,
-                image_url: item?.image_url,
-                cretedby: item?.cretedby
-            })
-        })
 
         res.status(200).send({
             success: true,
-            items: user,
+            items: data,
+        });
+
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+};
+
+exports.getUsersWithRole = async (req, res) => {
+    try {
+        const data = await User.findAll({
+            where: {
+                cretedby: req.userId
+            }
+        });
+
+        let users = []
+        users = await Promise.all(
+            data?.map(async (us) => {
+                const user = await db.role.findAll({
+                    where: {
+                        userId: us.id,
+                    }
+                });
+
+                return {
+                    ...us.toJSON(),
+                    role: user
+                };
+            })
+        )
+
+        res.status(200).send({
+            success: true,
+            items: users,
         });
 
     } catch (error) {
@@ -45,21 +66,12 @@ exports.getUsersbyState = async (req, res) => {
             where: {
                 stateId: req.params.stateId
             },
-            attributes: ['id', 'first_name', 'last_name', 'username']
+            attributes: ['id', 'name', 'username']
         });
 
-        let user = []
-
-        data?.map((it) => {
-            user.push({
-                id: it?.id,
-                name: `${it?.first_name} ${it?.last_name}`,
-                username: it?.username
-            })
-        })
         res.status(200).send({
             success: true,
-            items: user,
+            items: data,
         });
 
     } catch (error) {
@@ -77,23 +89,9 @@ exports.getCustomer = async (req, res) => {
             }
         });
 
-        let user = [];
-        data?.map((item) => {
-            user.push({
-                id: item?.id,
-                name: `${item?.first_name} ${item?.last_name}`,
-                username: item?.username,
-                whatsapp: item?.whatsapp,
-                address: item?.address,
-                email: item?.email,
-                image_url: item?.image_url,
-                cretedby: item?.cretedby
-            })
-        })
-
         res.status(200).send({
             success: true,
-            items: user,
+            items: data,
         });
 
     } catch (error) {
@@ -111,23 +109,9 @@ exports.getSupplier = async (req, res) => {
             }
         });
 
-        let user = [];
-        data?.map((item) => {
-            user.push({
-                id: item?.id,
-                name: `${item?.first_name} ${item?.last_name}`,
-                username: item?.username,
-                whatsapp: item?.whatsapp,
-                address: item?.address,
-                email: item?.email,
-                image_url: item?.image_url,
-                cretedby: item?.cretedby
-            })
-        })
-
         res.status(200).send({
             success: true,
-            items: user,
+            items: data,
         });
 
     } catch (error) {
@@ -140,7 +124,7 @@ exports.getShop = async (req, res) => {
     try {
         const data = await User.findAll({
             where: {
-                usertype: "shop",
+                usertype: { [Op.or]: ["Wholesale", "Retailer"] },
                 cretedby: req.userId
             }
         });
@@ -160,9 +144,9 @@ exports.getShopList = async (req, res) => {
         // Fetch all shops
         const shops = await User.findAll({
             where: {
-                usertype: "shop",
+                usertype: { [Op.or]: ["Wholesaler", "Retailer"] },
             },
-            attributes: ["id", "first_name", "last_name"],
+            attributes: ["id", "name"],
             limit: 3
         });
         let shopData = [];
@@ -227,14 +211,13 @@ exports.getSingleUsers = async (req, res) => {
 
 exports.updateUsers = async (req, res) => {
     const id = req.userId;
-    const { first_name, last_name, email, username, password, image_url, stateId } = req.body;
+    const { name, email, username, password, image_url, stateId } = req.body;
 
     try {
 
         await User.update(
             {
-                first_name,
-                last_name,
+                name,
                 username,
                 email,
                 password,
@@ -255,48 +238,6 @@ exports.updateUsers = async (req, res) => {
     }
 };
 
-exports.UserDueCreate = async (req, res) => {
-    const { userId, amount } = req.body;
-
-    try {
-        const user = await UserDue.findOne({ where: { userId } });
-
-        if (user) {
-            await UserDue.update(
-                { amount: user.amount + amount },
-                { where: { userId } }
-            );
-        } else {
-            await UserDue.create({ userId, amount });
-        }
-
-        res.status(200).send({
-            success: true,
-            message: "Success",
-        });
-    } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
-    }
-};
-
-exports.UserDue = async (req, res) => {
-    const id = req.params.id;
-
-    try {
-        let user = await UserDue.findOne({
-            where: {
-                userId: id
-            }
-        });
-        res.status(200).send({
-            success: true,
-            items: user,
-        });
-
-    } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
-    }
-};
 
 
 

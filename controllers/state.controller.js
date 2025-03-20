@@ -9,9 +9,6 @@ exports.getState = async (req, res) => {
     try {
         let data = await State.findAll({
             attributes: ['id', 'name'],
-            where: {
-                cretedby: req.userId
-            }
         })
         res.status(200).send({
             success: true,
@@ -111,8 +108,7 @@ exports.CreateState = async (req, res) => {
         }
 
         await State.create({
-            name: req.body.name,
-            cretedby:req.userId
+            name: req.body.name
         });
 
         res.status(200).send({

@@ -28,10 +28,11 @@ require('./routes/state.routes')(app);
 require('./routes/category.routes')(app);
 require('./routes/brand.routes')(app);
 require('./routes/notification.routes')(app);
+require('./routes/customer.routes')(app);
 
 
-// db.sequelize.sync({ force: false }).then(async () => {
-//     // await initStates();
+// db.sequelize.sync({ force: true }).then(async () => {
+//     await initStates();
 //     // await initUserRoles();
 //     // await initCarousel();
 //     // await initCategories();
@@ -41,8 +42,7 @@ require('./routes/notification.routes')(app);
 
 const initStates = async () => {
     await db.state.create({
-        name: "Dhaka",
-        cretedby: 1
+        name: "Madaripur Sadar",
     });
     await db.category.create({
         name: "Book",
@@ -55,17 +55,33 @@ const initStates = async () => {
         createdby: 1
     });
     await db.user.create({
-        first_name: "Mahfuzur",
-        last_name: "Rahman",
-        username: "01782205566",
+        name: "Kazal and Brothers",
+        username: "1234567890",
         whatsapp: "1234567890",
         address: "Dhaka Uttara",
-        email: "mahfuzur1316@gmail.com",
+        bankname: "City Bank",
+        accountname: "KazlandBrother",
+        accountnumber: "1234567890",
+        email: "kazalandbrother@gmail.com",
         stateId: 1,
-        usertype: "customer",
+        usertype: "Wholesaler",
         cretedby: 1,
         password: bcrypt.hashSync("1234560", 8),
-        image_url: "https://cdn-icons-png.flaticon.com/128/149/149071.png",
+        image_url: "https://cdn-icons-png.flaticon.com/128/2202/2202112.png",
+    })
+    await db.customer.create({
+        name: "Random Customer",
+        phone: "1234567890",
+        bankname: "City Bank",
+        accountname: "Random Customer",
+        accountnumber: "1234567890",
+        balance: 0,
+        address: "Random",
+        email: "randomcustomer@gmail.com",
+        stateId: 1,
+        usertype: "Retailer",
+        cretedby: 1,
+        image_url: "https://cdn-icons-png.flaticon.com/128/2202/2202112.png",
     })
     await db.role.create({
         userId: 1,

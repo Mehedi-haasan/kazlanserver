@@ -9,9 +9,9 @@ module.exports = function (app) {
         next();
     })
 
-    app.get('/api/get/order', controller.getAllOrder);
-    app.get('/api/get/order/:id', controller.getOrder);
-    app.get('/api/get/order/daily/salse', controller.getDailySalse);
+    app.get('/api/get/order', jwt.verifyToken, controller.getAllOrder);
+    app.get('/api/get/order/:id', jwt.verifyToken, controller.getOrder);
+    app.get('/api/get/order/daily/salse', jwt.verifyToken, controller.getDailySalse);
     app.post('/api/post/order', jwt.verifyToken, controller.CreateOrder);
     app.get('/api/get/user/order/monthly', jwt.verifyToken, controller.getMonthlyOrder);
     app.get('/api/get/order/today', jwt.verifyToken, controller.getTodatOrder);

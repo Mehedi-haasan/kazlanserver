@@ -20,13 +20,13 @@ const RoleSetup = async (rules, userId) => {
 };
 
 exports.singUp = async (req, res) => {
-    const body = req.body;
+    const { name, username, whatsapp, bankname, accountname, accountnumber, address, email, stateId, usertype, password, image_url } = req.body;
     try {
         const data = await User.findOne({
             where: {
                 [Op.or]: [
-                    { username: req.body.username },
-                    { email: req.body.email },
+                    { username: username },
+                    { email: email },
                 ],
             },
         })
@@ -39,17 +39,19 @@ exports.singUp = async (req, res) => {
         }
 
         await User.create({
-            first_name: req.body.first_name,
-            last_name: req.body.last_name,
-            username: req.body.username,
-            whatsapp: req.body.whatsapp,
-            address: req.body.address,
-            email: req.body.email,
-            stateId: req.body.stateId,
-            usertype: req.body.usertype,
+            name: name,
+            username: username,
+            whatsapp: whatsapp,
+            bankname: bankname,
+            accountname: accountname,
+            accountnumber: accountnumber,
+            address: address,
+            email: email,
+            stateId: stateId,
+            usertype: usertype,
             cretedby: req.userId,
-            password: bcrypt.hashSync(req.body.password, 8),
-            image_url: req.body.image_url,
+            password: bcrypt.hashSync(password, 8),
+            image_url: image_url,
         });
 
 
@@ -114,9 +116,11 @@ exports.singIn = async (req, res) => {
         res.status(200).send({
             success: true,
             message: "Login Successfully",
-            name: data?.first_name,
+            name: data?.name,
+            image: data?.image_url,
             role: role?.name,
             id: data?.id,
+            usertype: data?.usertype,
             accessToken: token,
         })
 

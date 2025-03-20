@@ -7,9 +7,6 @@ module.exports = (sequelize, Sequelize) => {
         },
         name: {
             type: Sequelize.STRING
-        },
-        cretedby:{
-            type: Sequelize.INTEGER
         }
     });
 

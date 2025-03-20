@@ -11,17 +11,12 @@ module.exports = function (app) {
     });
 
     app.get("/api/get/users", [jwt.verifyToken], controller.getUsers);
-    app.get("/api/get/users/:stateId",[jwt.verifyToken], controller.getUsersbyState);
+    app.get("/api/get/users/with/role", [jwt.verifyToken], controller.getUsersWithRole);
+    app.get("/api/get/users/:stateId", [jwt.verifyToken], controller.getUsersbyState);
 
-    
+
     app.get("/api/get/single/users", [jwt.verifyToken], controller.getSingleUsers);
     app.patch("/api/update/single/users", [jwt.verifyToken], controller.updateUsers);
-    app.get("/api/users/due/:id", controller.UserDue);
-    app.patch("/api/users/due/update", controller.UserDueCreate);
-
-
-    app.get("/api/get/customer", [jwt.verifyToken], controller.getCustomer);
-    app.get("/api/get/supplier", [jwt.verifyToken], controller.getSupplier);
     app.get("/api/get/shop", [jwt.verifyToken], controller.getShop);
-    app.get("/api/get/shop/list/with/info",  controller.getShopList);
+    app.get("/api/get/shop/list/with/info", controller.getShopList);
 };

@@ -33,6 +33,9 @@ module.exports = (sequelize, Sequelize) => {
         discount: {
             type: Sequelize.INTEGER,
         }, 
+        createdby: {
+            type: Sequelize.INTEGER,
+        },
         sellprice: {
             type: Sequelize.INTEGER,
         }, 
