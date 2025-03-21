@@ -288,20 +288,33 @@ exports.CreateOrder = async (req, res) => {
 
 exports.RecentInvoice = async (req, res) => {
     try {
+        const page = parseInt(req.params.page) || 1;
+        const pageSize = 10; 
+        const offset = (page - 1) * pageSize;
+
         let data = await Invoice.findAll({
-            where: {
-                createdby: req?.userId
-            }
-        })
+            where: { createdby: req?.userId },
+            limit: pageSize,
+            offset: offset,
+            order: [['createdAt', 'DESC']], // Sort by newest invoices
+        });
+
+        const totalInvoices = await Invoice.count({ where: { createdby: req?.userId } });
+        const totalPages = Math.ceil(totalInvoices / pageSize);
+
         res.status(200).send({
             success: true,
-            items: data
-        })
+            currentPage: page,
+            totalPages: totalPages,
+            totalItems: totalInvoices,
+            items: data,
+        });
 
     } catch (error) {
         res.status(500).send({ success: false, message: error.message });
     }
-}
+};
+
 
 const groupByDay = async (orders) => {
     return orders.reduce((acc, order) => {

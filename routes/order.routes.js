@@ -15,7 +15,7 @@ module.exports = function (app) {
     app.post('/api/post/order', jwt.verifyToken, controller.CreateOrder);
     app.get('/api/get/user/order/monthly', jwt.verifyToken, controller.getMonthlyOrder);
     app.get('/api/get/order/today', jwt.verifyToken, controller.getTodatOrder);
-    app.get('/api/get/user/recent/order', jwt.verifyToken, controller.RecentInvoice);
+    app.get('/api/get/user/recent/order/:page', jwt.verifyToken, controller.RecentInvoice);
 
 
     app.post('/api/return/sale', jwt.verifyToken, controller.ReturnSale)

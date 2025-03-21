@@ -48,11 +48,15 @@ exports.createProduct = async (req, res) => {
 }
 
 exports.getProductTemplete = async (req, res) => {
+  const page = parseInt(req.params.page) || 1;
+  const pageSize = parseInt(req.params.pageSize) || 10;
+  const offset = (page - 1) * pageSize;
   try {
     let data = await ProductTemplate.findAll({
-      where: {
-        createdby: req.userId
-      }
+      where: { createdby: req.userId },
+      limit: pageSize,
+      offset: offset,
+      order: [['createdAt', 'DESC']],
     })
 
     res.status(200).send({
@@ -66,35 +70,35 @@ exports.getProductTemplete = async (req, res) => {
 
 exports.updateSingleProduct = async (req, res) => {
   try {
-      const { id, name, image_url, url } = req.body;
+    const { id, name, image_url, url } = req.body;
 
-      if (!id) {
-          return res.status(400).send({
-              success: false,
-              message: "Order ID and status are required."
-          });
-      }
-
-
-      const [updatedRowsCount] = await Brand.update(
-          { name: name, image_url: image_url },
-          { where: { id: id } }
-      );
-
-      if (updatedRowsCount === 0) {
-          return res.status(404).send({
-              success: false,
-              message: "Order not found or status is already the same."
-          });
-      }
-      deletePhoto(url)
-      res.status(200).send({
-          success: true,
-          message: `Updated successfully`,
+    if (!id) {
+      return res.status(400).send({
+        success: false,
+        message: "Order ID and status are required."
       });
+    }
+
+
+    const [updatedRowsCount] = await Brand.update(
+      { name: name, image_url: image_url },
+      { where: { id: id } }
+    );
+
+    if (updatedRowsCount === 0) {
+      return res.status(404).send({
+        success: false,
+        message: "Order not found or status is already the same."
+      });
+    }
+    deletePhoto(url)
+    res.status(200).send({
+      success: true,
+      message: `Updated successfully`,
+    });
 
   } catch (error) {
-      res.status(500).send({ success: false, message: error.message });
+    res.status(500).send({ success: false, message: error.message });
   }
 }
 
@@ -161,30 +165,30 @@ exports.UpdateProduct = async (req, res) => {
 
 exports.DeleteProduct = async (req, res) => {
   try {
-      const { id, url } = req.body;
+    const { id, url } = req.body;
 
-      if (!id) {
-          return res.status(400).send({
-              success: false,
-              message: "Brand ID is required."
-          });
-      }
-
-      const deletedRowsCount = await ProductTemplate.destroy({ where: { id } });
-
-      if (deletedRowsCount === 0) {
-          return res.status(404).send({
-              success: false,
-              message: "Brand not found."
-          });
-      }
-      deletePhoto(url)
-      res.status(200).send({
-          success: true,
-          message: "Brand deleted successfully.",
+    if (!id) {
+      return res.status(400).send({
+        success: false,
+        message: "Brand ID is required."
       });
+    }
+
+    const deletedRowsCount = await ProductTemplate.destroy({ where: { id } });
+
+    if (deletedRowsCount === 0) {
+      return res.status(404).send({
+        success: false,
+        message: "Brand not found."
+      });
+    }
+    deletePhoto(url)
+    res.status(200).send({
+      success: true,
+      message: "Brand deleted successfully.",
+    });
 
   } catch (error) {
-      res.status(500).send({ success: false, message: error.message });
+    res.status(500).send({ success: false, message: error.message });
   }
 };

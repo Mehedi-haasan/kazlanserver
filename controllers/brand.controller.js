@@ -2,16 +2,35 @@ const db = require("../models");
 const Brand = db.brand;
 const deletePhoto = require('../controllers/filedelete.controller')
 
-
-
 exports.getBrand = async (req, res) => {
     try {
         let data = await Brand.findAll({
-            limit: 15,
             attributes: ['id', 'name', 'image_url'],
-            where: {
-                createdby: req.userId
-            }
+            where: { createdby: req?.userId },
+            order: [['createdAt', 'DESC']],
+        })
+        res.status(200).send({
+            success: true,
+            items: data
+        })
+
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+}
+
+exports.getBrandWithPage = async (req, res) => {
+    const page = parseInt(req.params.page) || 1;
+    const pageSize = parseInt(req.params.pageSize) || 10;
+    const offset = (page - 1) * pageSize;
+
+    try {
+        let data = await Brand.findAll({
+            attributes: ['id', 'name', 'image_url'],
+            where: { createdby: req?.userId },
+            limit: pageSize,
+            offset: offset,
+            order: [['createdAt', 'DESC']],
         })
         res.status(200).send({
             success: true,
