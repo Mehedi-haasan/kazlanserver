@@ -51,7 +51,7 @@ exports.singUp = async (req, res) => {
             usertype: usertype,
             cretedby: req.userId,
             password: bcrypt.hashSync(password, 8),
-            image_url: image_url,
+            image_url: image_url || 'https://cdn-icons-png.flaticon.com/128/2202/2202112.png',
         });
 
 

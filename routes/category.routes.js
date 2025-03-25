@@ -11,7 +11,8 @@ module.exports = function (app) {
     });
 
     app.post("/api/create/category", [jwt.verifyToken, jwt.isAdmin], controller.CreateCategory);
-    app.get("/api/get/category",jwt.verifyToken, controller.getCategory);
+    app.get("/api/get/category/:page/:pageSize",jwt.verifyToken, controller.getCategory);
+    app.get("/api/get/category",jwt.verifyToken, controller.getCategoryAll);
     app.get("/api/get/category/by/productValue", controller.getCategoryByProduct);
     app.patch("/api/update/category", [jwt.verifyToken, jwt.isAdmin], controller.updateCategory);
     app.post("/api/delete/category", [jwt.verifyToken, jwt.isAdmin], controller.DeleteCategory);

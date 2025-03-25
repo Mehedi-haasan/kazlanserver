@@ -3,21 +3,18 @@ const Company = db.company;
 
 
 exports.CreateInfo = async (req, res) => {
-    const { name, description, fb_url, yu_url, wh_url, tw_url, email, email2, phone, phone2, address } = req.body;
-
+    const { name, description, email, phone, address, footertext } = req.body;
+    console.log("Hitting", name, description, email, phone, address, footertext)
     try {
-        await Company.create({
-            name,
-            description,
-            fb_url,
-            yu_url,
-            wh_url,
-            tw_url,
-            email,
-            email2,
-            phone,
-            phone2,
-            address
+        await db.company.create({
+            userId: 2,
+            name: name,
+            description: description,
+            image_url: image_url,
+            email: email,
+            phone: phone,
+            address: address,
+            footertext: footertext
         })
         res.status(200).send({
             success: true,
@@ -27,31 +24,28 @@ exports.CreateInfo = async (req, res) => {
     } catch (error) {
         res.status(500).send({
             success: true,
-            message: 'Internal server error'
+            message: error
         })
     }
 }
 
 exports.updateInfo = async (req, res) => {
-    const { name, description, fb_url, yu_url, wh_url, tw_url, email, email2, phone, phone2, address } = req.body;
+    const { userId, name, description, email, phone, address, footertext } = req.body;
 
     try {
         const [updated] = await Company.update({
+            userId,
             name,
             description,
-            fb_url,
-            yu_url,
-            wh_url,
-            tw_url,
+            image_url,
             email,
-            email2,
             phone,
-            phone2,
-            address
+            address,
+            footertext
         },
             {
                 where: {
-                    id: 1
+                    userId: req?.userId
                 }
             });
 
@@ -76,7 +70,11 @@ exports.updateInfo = async (req, res) => {
 
 exports.GetCompanyInfo = async (req, res) => {
     try {
-        const data = await Company.findOne(); // Retrieves the first entry in the Company table
+        const data = await Company.findOne({
+            where: {
+                userId: req.userId
+            }
+        });
         res.status(200).send({
             success: true,
             items: data

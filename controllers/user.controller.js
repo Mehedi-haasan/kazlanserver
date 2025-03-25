@@ -1,7 +1,7 @@
+var bcrypt = require("bcryptjs");
 const db = require("../models");
 const User = db.user;
 const Product = db.product;
-const UserDue = db.userdue;
 const { Op } = require("sequelize");
 
 
@@ -26,11 +26,14 @@ exports.getUsers = async (req, res) => {
 };
 
 exports.getUsersWithRole = async (req, res) => {
+    const page = parseInt(req.params.page) || 1;
+    const pageSize = parseInt(req.params.pageSize) || 10;
+    const offset = (page - 1) * pageSize;
     try {
         const data = await User.findAll({
-            where: {
-                cretedby: req.userId
-            }
+            where: { cretedby: req.userId },
+            limit: pageSize,
+            offset: offset
         });
 
         let users = []
@@ -140,15 +143,20 @@ exports.getShop = async (req, res) => {
 };
 
 exports.getShopList = async (req, res) => {
+    const page = parseInt(req.params.page) || 1;
+    const pageSize = parseInt(req.params.pageSize) || 10;
+    const offset = (page - 1) * pageSize;
     try {
         // Fetch all shops
         const shops = await User.findAll({
-            where: {
-                usertype: { [Op.or]: ["Wholesaler", "Retailer"] },
-            },
+            where: { usertype: { [Op.or]: ["Wholesaler", "Retailer"] } },
             attributes: ["id", "name"],
-            limit: 3
+            limit: pageSize,
+            offset: offset
         });
+
+
+
         let shopData = [];
         if (shops.length > 0) {
             shopData = await Promise.all(
@@ -211,7 +219,18 @@ exports.getSingleUsers = async (req, res) => {
 
 exports.updateUsers = async (req, res) => {
     const id = req.userId;
-    const { name, email, username, password, image_url, stateId } = req.body;
+    const { name,
+        username,
+        bankname,
+        bankaccount,
+        accountnumber,
+        address,
+        email,
+        stateId,
+        usertype,
+        cretedby,
+        password,
+        image_url } = req.body;
 
     try {
 
@@ -219,10 +238,17 @@ exports.updateUsers = async (req, res) => {
             {
                 name,
                 username,
+                bankname,
+                bankaccount,
+                accountnumber,
+                address,
                 email,
+                stateId,
+                usertype,
+                cretedby,
                 password,
-                image_url,
-                stateId
+                image_url
+
             },
             {
                 where: { id }
@@ -238,6 +264,67 @@ exports.updateUsers = async (req, res) => {
     }
 };
 
+exports.ChangePassword = async (req, res) => {
+    const id = req.userId;
+    const { name, username, bankname, bankaccount, accountnumber, address, email, stateId, usertype, cretedby, password, image_url } = req.body;
+
+    try {
+
+        const data = await User.findOne({
+            where: {
+                [Op.or]: [
+                    { username: req.body.username },
+                    { email: req.body.username },
+                ],
+            },
+        })
+
+        if (!data) {
+            return res.status(404).send({ success: false, message: "User Not found." });
+        }
+
+        var passwordIsValid = bcrypt.compareSync(
+            req.body.password,
+            data.password
+        );
+
+        if (!passwordIsValid) {
+            return res.status(401).send({
+                accessToken: null,
+                message: "Invalid Password!"
+            });
+        }
+
+
+        await User.update(
+            {
+                name,
+                username,
+                bankname,
+                bankaccount,
+                accountnumber,
+                address,
+                email,
+                stateId,
+                usertype,
+                cretedby,
+                password: bcrypt.hashSync(password, 8),
+                image_url
+
+            },
+            {
+                where: { id }
+            }
+        );
+        res.status(200).send({
+            success: true,
+            message: "Update Successfulll",
+        });
+
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+};
 
 
 

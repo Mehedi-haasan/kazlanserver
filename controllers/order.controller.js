@@ -10,17 +10,23 @@ const Op = db.Sequelize.Op;
 
 
 exports.getAllOrder = async (req, res) => {
-
+    const page = parseInt(req.params.page) || 1;
+    const pageSize = parseInt(req.params.pageSize) || 10;
+    const offset = (page - 1) * pageSize;
     try {
         let data = await SaleOrder.findAll({
-            limit: 14,
+            limit: pageSize,
+            offset: offset,
             include: [
                 {
                     model: Product,
 
                 }
             ],
-            order: [["createdAt", "DESC"]]
+            order: [["createdAt", "DESC"]],
+            where: {
+                createdby: req?.userId
+            }
         })
         res.status(200).send({
             success: true,
@@ -45,60 +51,23 @@ exports.getOrder = async (req, res) => {
                 {
                     model: Product,
 
-                },
-                {
-                    model: User,
-                    include: [
-                        {
-                            model: db.state
-                        }
-                    ]
                 }
             ]
         })
 
-        let due = await UserDue.findOne({
+
+
+        let user = await Customer.findOne({
             where: {
-                userId: data[0]?.userId
+                id: data[0]?.userId
             }
         })
 
-        let resdata = [];
-        let user = data?.length > 0 ? {
-            name: data[0]?.user?.first_name + " " + data[0]?.user?.last_name,
-            contact: data[0]?.contact,
-            date: data[0]?.date,
-            invoice_id: data[0]?.invoice_id,
-            discount: data[0]?.discount,
-            state: data[0]?.user?.state?.name,
-            discountType: data[0]?.discountType,
-            due: due?.amount || 0
-
-        } : null
-
-        data?.map((item) => {
-            resdata.push({
-                "id": item?.product?.id,
-                "active": null,
-                "product_type": true,
-                "categoryId": item?.product?.categoryId,
-                "name": item?.product?.name,
-                "description": item?.product?.description,
-                "image_url": item?.product?.image_url,
-                "cost": item?.product?.cost,
-                "price": item?.product?.price,
-                "standard_price": item?.product?.standard_price,
-                "qty": item?.qty,
-                "createdAt": "2025-02-20T17:50:42.000Z",
-                "updatedAt": "2025-02-20T17:53:22.000Z"
-            })
-        })
 
         res.status(200).send({
             success: true,
-            items: resdata,
-            user: user,
-            due: due
+            items: data,
+            user: user
         })
 
     } catch (error) {
@@ -161,7 +130,8 @@ exports.getDailySalse = async (req, res) => {
 
         let data = await SaleOrder.findAll({
             where: {
-                createdAt: { [Op.gte]: today }
+                createdAt: { [Op.gte]: today },
+                createdby: req?.userId
             },
             limit: 300,
             order: [["createdAt", "DESC"]]
@@ -289,14 +259,14 @@ exports.CreateOrder = async (req, res) => {
 exports.RecentInvoice = async (req, res) => {
     try {
         const page = parseInt(req.params.page) || 1;
-        const pageSize = 10; 
+        const pageSize = parseInt(req.params.pageSize) || 10;
         const offset = (page - 1) * pageSize;
 
         let data = await Invoice.findAll({
             where: { createdby: req?.userId },
             limit: pageSize,
             offset: offset,
-            order: [['createdAt', 'DESC']], // Sort by newest invoices
+            order: [['createdAt', 'DESC']],
         });
 
         const totalInvoices = await Invoice.count({ where: { createdby: req?.userId } });
@@ -409,10 +379,10 @@ exports.ReturnSale = async (req, res) => {
         }
 
         // Fetch user due details
-        const due = await UserDue.findOne({ where: { userId: InvoiceData?.userId } });
+        const due = await Customer.findOne({ where: { id: InvoiceData?.userId } });
         if (due) {
-            const updatedDue = Math.max(0, (parseInt(due.amount) || 0) - (parseInt(InvoiceData.paidamount) || 0));
-            await UserDue.update({ amount: updatedDue }, { where: { userId: InvoiceData.userId } });
+            const updatedDue = (parseInt(due.balance) || 0) - parseInt(InvoiceData.paidamount);
+            await Customer.update({ balance: updatedDue }, { where: { id: InvoiceData.userId } });
         }
 
         // Delete invoice and related records

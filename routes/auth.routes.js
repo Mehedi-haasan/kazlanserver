@@ -13,7 +13,7 @@ module.exports = function (app) {
 
 
     app.post("/api/auth/signin", controller.singIn);
-    app.post("/api/auth/signup", [jwt.verifyToken, jwt.isAdmin], controller.singUp);
+    app.post("/api/auth/signup", [jwt.verifyToken, jwt.isSuperAdmin], controller.singUp);
     app.post("/api/forget/password", controller.ForgetPassword);
     app.post("/api/otp/varification", controller.OtpVarification);
     

@@ -85,7 +85,7 @@ const initStates = async () => {
     })
     await db.role.create({
         userId: 1,
-        name: 'admin'
+        name: 'superadmin'
     })
 }
 

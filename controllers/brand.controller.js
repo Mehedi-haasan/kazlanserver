@@ -2,7 +2,7 @@ const db = require("../models");
 const Brand = db.brand;
 const deletePhoto = require('../controllers/filedelete.controller')
 
-exports.getBrand = async (req, res) => {
+exports.getBrandAll = async (req, res) => {
     try {
         let data = await Brand.findAll({
             attributes: ['id', 'name', 'image_url'],

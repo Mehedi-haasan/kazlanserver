@@ -23,13 +23,17 @@ exports.GetWholesellCustomer = async (req, res) => {
 }
 
 exports.WholesellCustomer = async (req, res) => {
+    const page = parseInt(req.params.page) || 1;
+    const pageSize = parseInt(req.params.pageSize) || 10;
+    const offset = (page - 1) * pageSize;
     try {
         let data = await db.customer.findAll({
-            limit: 15,
+            limit: pageSize,
             where: {
                 cretedby: req.userId,
                 usertype: "Wholesaler",
-            }
+            },
+            offset: offset
         })
         res.status(200).send({
             success: true,
@@ -42,14 +46,18 @@ exports.WholesellCustomer = async (req, res) => {
 }
 
 exports.GetRetailerCustomer = async (req, res) => {
+    const page = parseInt(req.params.page) || 1;
+    const pageSize = parseInt(req.params.pageSize) || 10;
+    const offset = (page - 1) * pageSize;
     try {
         let data = await db.customer.findAll({
-            limit: 15,
+            limit: pageSize,
             where: {
                 createdby: req.userId,
                 usertype: "Retailer",
                 stateId: req.params.stateId
-            }
+            },
+            offset: offset
         })
         res.status(200).send({
             success: true,
@@ -81,13 +89,17 @@ exports.RetailerCustomer = async (req, res) => {
 }
 
 exports.GetSupplier = async (req, res) => {
+    const page = parseInt(req.params.page) || 1;
+    const pageSize = parseInt(req.params.pageSize) || 10;
+    const offset = (page - 1) * pageSize;
     try {
         let data = await db.customer.findAll({
-            limit: 15,
+            limit: pageSize,
             where: {
                 cretedby: req.userId,
                 usertype: "Supplier"
-            }
+            },
+            offset: offset
         })
         res.status(200).send({
             success: true,
@@ -125,6 +137,109 @@ exports.CreateCustomer = async (req, res) => {
         res.status(500).send({ success: false, message: error.message });
     }
 }
+
+exports.UpdateCustomer = async (req, res) => {
+    const { id } = req.params;
+    const { name, phone, bankname, accountname, accountnumber, balance, address, email, stateId, usertype, image_url } = req.body;
+
+    try {
+        let customer = await db.customer.findOne({
+            where: {
+                id: id
+            }
+        });
+
+        if (!customer) {
+            return res.status(404).send({
+                success: false,
+                message: "Customer not found",
+            });
+        }
+
+        await db.customer.update(
+            {
+                name,
+                phone,
+                bankname,
+                accountname,
+                accountnumber,
+                balance,
+                address,
+                email,
+                stateId,
+                usertype,
+                image_url
+            },
+            {
+                where: {
+                    id: id  // ✅ Fixed here
+                }
+            }
+        );
+
+        res.status(200).send({
+            success: true,
+            message: "Updated Successfully",
+        });
+
+    } catch (error) {
+        res.status(500).send({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
+
+exports.UpdateSupplier = async (req, res) => {
+    const { id } = req.params;
+    const { name, phone, bankname, accountname, accountnumber, balance, address, email, stateId, usertype, image_url } = req.body;
+
+    try {
+        let supplier = await db.customer.findOne({
+            where: {
+                id: id
+            }
+        });
+
+        if (!supplier) {
+            return res.status(404).send({
+                success: false,
+                message: "Customer not found",
+            });
+        }
+
+        await db.customer.update({
+            name,
+            phone,
+            bankname,
+            accountname,
+            accountnumber,
+            balance,
+            address,
+            email,
+            stateId,
+            usertype,
+            image_url
+        }, {
+            where: {
+                id: id
+            }
+        }
+        );
+
+        res.status(200).send({
+            success: true,
+            message: "Updated Successfully",
+        });
+
+    } catch (error) {
+        res.status(500).send({
+            success: false,
+            message: error.message,
+        });
+    }
+};
 
 exports.GetCustomerDue = async (req, res) => {
     try {

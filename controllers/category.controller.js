@@ -6,13 +6,15 @@ const Op = db.Sequelize.Op;
 
 
 exports.getCategory = async (req, res) => {
+    const page = parseInt(req.params.page) || 1;
+    const pageSize = parseInt(req.params.pageSize) || 10;
+    const offset = (page - 1) * pageSize;
     try {
         let data = await Category.findAll({
-            limit: 15,
+            limit: pageSize,
             attributes: ['id', 'name', 'image_url'],
-            where: {
-                createdby: req.userId
-            }
+            where: { createdby: req.userId },
+            offset: offset
         })
         res.status(200).send({
             success: true,
@@ -23,6 +25,26 @@ exports.getCategory = async (req, res) => {
         res.status(500).send({ success: false, message: error.message });
     }
 }
+
+
+exports.getCategoryAll = async (req, res) => {
+
+    try {
+        let data = await Category.findAll({
+            attributes: ['id', 'name', 'image_url'],
+            where: { createdby: req.userId },
+        })
+        res.status(200).send({
+            success: true,
+            items: data
+        })
+
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+}
+
+
 
 exports.getCategoryByProduct = async (req, res) => {
     // try {

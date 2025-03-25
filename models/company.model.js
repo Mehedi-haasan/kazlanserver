@@ -5,37 +5,28 @@ module.exports = (sequelize, Sequelize) => {
             primaryKey: true,
             autoIncrement: true,
         },
+        userId: {
+            type: Sequelize.INTEGER,
+        },
         name: {
+            type: Sequelize.STRING,
+        },
+        image_url: {
             type: Sequelize.STRING,
         },
         description: {
             type: Sequelize.STRING,
         },
-        fb_url: {
-            type: Sequelize.STRING,
-        },
-        yu_url: {
-            type: Sequelize.STRING,
-        },
-        wh_url: {
-            type: Sequelize.STRING,
-        },
-        tw_url: {
-            type: Sequelize.STRING,
-        },
         email: {
-            type: Sequelize.STRING,
-        },
-        email2: {
             type: Sequelize.STRING,
         },
         phone: {
             type: Sequelize.STRING,
         },
-        phone2: {
+        address: {
             type: Sequelize.STRING,
         },
-        address: {
+        footertext: {
             type: Sequelize.STRING,
         },
     });

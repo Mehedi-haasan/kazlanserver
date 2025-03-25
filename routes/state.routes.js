@@ -12,6 +12,7 @@ module.exports = function (app) {
 
     app.post("/api/create/state", jwt.verifyToken, controller.CreateState);
     app.get("/api/get/state", jwt.verifyToken, controller.getState);
+    app.get("/api/get/state/:page/:pageSize", jwt.verifyToken, controller.getStateWithPage);
     app.get("/api/get/state/with/user", controller.getStateWithUser);
     app.delete("/api/delete/state/:id", controller.DeleteState);
 

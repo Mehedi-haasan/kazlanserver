@@ -1,14 +1,33 @@
 const db = require("../models");
 const State = db.state;
-const User = db.user;
-const Op = db.Sequelize.Op;
-
 
 
 exports.getState = async (req, res) => {
+
     try {
         let data = await State.findAll({
             attributes: ['id', 'name'],
+        })
+        res.status(200).send({
+            success: true,
+            items: data
+        })
+
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+
+}
+
+exports.getStateWithPage = async (req, res) => {
+    const page = parseInt(req.params.page) || 1;
+    const pageSize = parseInt(req.params.pageSize) || 10;
+    const offset = (page - 1) * pageSize;
+    try {
+        let data = await State.findAll({
+            limit: pageSize,
+            attributes: ['id', 'name'],
+            offset: offset
         })
         res.status(200).send({
             success: true,
