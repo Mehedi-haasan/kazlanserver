@@ -1,8 +1,6 @@
 const db = require("../models");
 const SaleOrder = db.saleorder;
-const UserDue = db.userdue;
 const Customer = db.customer;
-const User = db.user;
 const Product = db.product;
 const Notification = db.notification;
 const Invoice = db.invoice;
@@ -25,7 +23,7 @@ exports.getAllOrder = async (req, res) => {
             ],
             order: [["createdAt", "DESC"]],
             where: {
-                createdby: req?.userId
+                compId: req?.compId
             }
         })
         res.status(200).send({
@@ -45,7 +43,7 @@ exports.getOrder = async (req, res) => {
             limit: 10,
             where: {
                 invoice_id: req.params.id,
-                createdby: req?.userId
+                compId: req?.compId
             },
             include: [
                 {
@@ -87,7 +85,7 @@ exports.getTodatOrder = async (req, res) => {
         let data = await SaleOrder.findAll({
             where: {
                 date: getFormattedDate(),
-                createdby: req?.userId
+                compId: req?.compId
             },
             include: [
                 {
@@ -207,13 +205,16 @@ const UserDueCreate = async (userId, amount) => {
 
 exports.CreateOrder = async (req, res) => {
     try {
-        const { shop, orders, userId, amount, total, previousdue, paidamount, date } = req.body;
+        const { shop, customername, orders, userId, amount, total, previousdue, paidamount, date } = req.body;
         const invoice = await Invoice.create({
             date: date,
-            shop: shop,
+            compId: req?.compId,
+            shopname: shop,
             createdby: req.userId,
+            creator: req?.user,
             userId: userId,
             total: total,
+            customername: customername,
             previousdue: previousdue,
             paidamount: paidamount,
             due: (total + previousdue) - paidamount,
@@ -223,14 +224,15 @@ exports.CreateOrder = async (req, res) => {
             return res.status(400).send({ success: false, message: "Failed to create invoice" });
         }
 
-        // Assign the correct invoice_id to each order
         const updatedOrders = orders.map(order => ({
             ...order,
             invoice_id: invoice.id,
-            createdby: req?.userId
+            compId: req?.compId,
+            createdby: req?.userId,
+            creator: req?.user
         }));
 
-        // Bulk insert sale orders with the correct invoice_id
+
         await SaleOrder.bulkCreate(updatedOrders);
 
         // Update product stock
@@ -240,8 +242,11 @@ exports.CreateOrder = async (req, res) => {
             isSeen: 'false',
             status: 'success',
             userId: userId,
+            shop: shop,
+            compId: req?.compId,
             invoiceId: invoice.id,
-            createdby: req?.userId
+            createdby: req?.userId,
+            creator: req?.user
         });
         res.status(200).send({
             success: true,

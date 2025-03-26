@@ -11,8 +11,14 @@ module.exports = (sequelize, Sequelize) => {
         name: {
             type: Sequelize.STRING
         },
+        compId: {
+            type: Sequelize.INTEGER
+        },
         createdby: {
             type: Sequelize.INTEGER
+        },
+        creator: {
+            type: Sequelize.STRING
         },
         image_url: {
             type: Sequelize.STRING

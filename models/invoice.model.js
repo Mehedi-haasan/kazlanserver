@@ -8,11 +8,20 @@ module.exports = (sequelize, Sequelize) => {
         date: {
             type: Sequelize.STRING
         },
-        shop: {
+        compId: {
+            type: Sequelize.INTEGER
+        },
+        shopname: {
             type: Sequelize.STRING
         },
         createdby: {
             type: Sequelize.INTEGER
+        },
+        creator: {
+            type: Sequelize.STRING
+        },
+        customername: {
+            type: Sequelize.STRING
         },
         userId: {
             type: Sequelize.INTEGER

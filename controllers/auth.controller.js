@@ -20,7 +20,7 @@ const RoleSetup = async (rules, userId) => {
 };
 
 exports.singUp = async (req, res) => {
-    const { name, username, whatsapp, bankname, accountname, accountnumber, address, email, stateId, usertype, password, image_url } = req.body;
+    const { name, username, whatsapp, bankname, accountname, accountnumber, address, email, stateId, compId, usertype, password, image_url } = req.body;
     try {
         const data = await User.findOne({
             where: {
@@ -48,6 +48,7 @@ exports.singUp = async (req, res) => {
             address: address,
             email: email,
             stateId: stateId,
+            compId: compId,
             usertype: usertype,
             cretedby: req.userId,
             password: bcrypt.hashSync(password, 8),
@@ -113,11 +114,19 @@ exports.singIn = async (req, res) => {
             }
         })
 
+        let comp = await db.company.findOne({
+            where: {
+                id: data?.compId
+            }
+        })
+
         res.status(200).send({
             success: true,
             message: "Login Successfully",
             name: data?.name,
             image: data?.image_url,
+            logo: comp?.image_url,
+            shopname: comp?.name,
             role: role?.name,
             id: data?.id,
             usertype: data?.usertype,

@@ -10,7 +10,7 @@ module.exports = function (app) {
         next();
     });
 
-    app.get("/api/get/notification", controller.getNotification);
+    app.get("/api/get/notification", jwt.verifyToken, controller.getNotification);
     // app.get("/api/get/category", controller.getCategory);
     app.patch("/api/update/notification", controller.updateNotification);
 

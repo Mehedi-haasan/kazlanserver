@@ -11,6 +11,12 @@ module.exports = (sequelize, Sequelize) => {
         status: {
             type: Sequelize.STRING,
         },
+        shop: {
+            type: Sequelize.STRING,
+        },
+        compId: {
+            type: Sequelize.INTEGER
+        },
         userId: {
             type: Sequelize.INTEGER
         },
@@ -19,6 +25,9 @@ module.exports = (sequelize, Sequelize) => {
         },
         createdby: {
             type: Sequelize.INTEGER
+        },
+        creator: {
+            type: Sequelize.STRING,
         }
     });
 

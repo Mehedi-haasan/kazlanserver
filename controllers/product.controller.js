@@ -1,5 +1,5 @@
 const db = require("../models");
-const ProductTemplate = db.product;
+const Product = db.product;
 const Op = db.Sequelize.Op;
 const deletePhoto = require('./filedelete.controller')
 
@@ -8,7 +8,7 @@ exports.createProduct = async (req, res) => {
 
   try {
 
-    const data = await ProductTemplate.findOne({
+    const data = await Product.findOne({
       where: {
         name: req.body.name,
         createdby: req.userId
@@ -22,10 +22,12 @@ exports.createProduct = async (req, res) => {
       })
     }
 
-    await ProductTemplate.create({
-      acitve: 1,
+    await Product.create({
+      acitve: true,
       product_type: req.body.product_type,
       categoryId: req.body.categoryId,
+      compId: req.compId,
+      supplier: req.body.supplier,
       name: req.body.name,
       description: req.body.description,
       image_url: req.body.image_url,
@@ -33,6 +35,7 @@ exports.createProduct = async (req, res) => {
       price: req.body.price,
       brandId: req.body.brandId,
       createdby: req.userId,
+      creator: req.user,
       qty: req.body.qty,
     })
 
@@ -52,7 +55,7 @@ exports.getProductTemplete = async (req, res) => {
   const pageSize = parseInt(req.params.pageSize) || 10;
   const offset = (page - 1) * pageSize;
   try {
-    let data = await ProductTemplate.findAll({
+    let data = await Product.findAll({
       where: { createdby: req.userId },
       limit: pageSize,
       offset: offset,
@@ -105,7 +108,7 @@ exports.updateSingleProduct = async (req, res) => {
 exports.searchProduct = async (req, res) => {
   const searchTerm = req.params.product;
   try {
-    let data = await ProductTemplate.findAll({
+    let data = await Product.findAll({
       where: {
         name: {
           [Op.like]: `%${searchTerm}%` // Use LIKE for partial match
@@ -134,12 +137,12 @@ exports.UpdateProduct = async (req, res) => {
     const Products = [];
 
     for (const pro of updateProducts) {
-      const product = await ProductTemplate.findOne({
+      const product = await Product.findOne({
         where: { id: pro?.id },
       });
 
       if (product) {
-        await ProductTemplate.update(
+        await Product.update(
           {
             qty: parseInt(product.qty) + parseInt(pro?.qty),
           },
@@ -174,7 +177,7 @@ exports.DeleteProduct = async (req, res) => {
       });
     }
 
-    const deletedRowsCount = await ProductTemplate.destroy({ where: { id } });
+    const deletedRowsCount = await Product.destroy({ where: { id } });
 
     if (deletedRowsCount === 0) {
       return res.status(404).send({

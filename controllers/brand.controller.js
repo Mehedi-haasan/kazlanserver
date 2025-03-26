@@ -6,7 +6,7 @@ exports.getBrandAll = async (req, res) => {
     try {
         let data = await Brand.findAll({
             attributes: ['id', 'name', 'image_url'],
-            where: { createdby: req?.userId },
+            where: { compId: req?.compId },
             order: [['createdAt', 'DESC']],
         })
         res.status(200).send({
@@ -27,7 +27,7 @@ exports.getBrandWithPage = async (req, res) => {
     try {
         let data = await Brand.findAll({
             attributes: ['id', 'name', 'image_url'],
-            where: { createdby: req?.userId },
+            where: { compId: req?.compId },
             limit: pageSize,
             offset: offset,
             order: [['createdAt', 'DESC']],
@@ -46,11 +46,14 @@ exports.getBrandWithPage = async (req, res) => {
 
 
 exports.CreateBrand = async (req, res) => {
+    console.log(req.user,"user")
     try {
         await Brand.create({
             name: req.body.name,
             image_url: req.body.image_url,
-            createdby: req.userId
+            compId: req.compId,
+            createdby: req.userId,
+            creator: req.user
         });
 
         res.status(200).send({

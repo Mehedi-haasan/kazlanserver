@@ -11,7 +11,12 @@ const server = http.createServer(app);
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({ extended: true }));
 
-app.use(cors());
+app.use(cors({
+    origin: ["http://localhost:3000", "https://kazalandbrothers.xyz"],
+    methods: ["GET", "POST", "PUT", "DELETE", "PATCH", "OPTIONS"],
+    allowedHeaders: ["Content-Type", "authorization"],
+    credentials: true,
+}));
 
 app.use('/uploads', express.static('uploads'));
 
@@ -47,15 +52,19 @@ const initStates = async () => {
     await db.category.create({
         name: "Book",
         image_url: "https://cdn-icons-png.flaticon.com/128/149/149071.png",
-        createdby: 1
+        compId: 1,
+        createdby: 1,
+        creator: "",
     });
     await db.brand.create({
         name: "Matadoor",
+        compId: 1,
         image_url: "https://cdn-icons-png.flaticon.com/128/149/149071.png",
-        createdby: 1
+        createdby: 1,
+        creator: "",
     });
     await db.user.create({
-        name: "Kazal and Brothers",
+        name: "Mahfuzur Rahman",
         username: "1234567890",
         whatsapp: "1234567890",
         address: "Dhaka Uttara",
@@ -64,8 +73,10 @@ const initStates = async () => {
         accountnumber: "1234567890",
         email: "kazalandbrother@gmail.com",
         stateId: 1,
+        compId: 1,
         usertype: "Wholesaler",
         cretedby: 1,
+        creator: "",
         password: bcrypt.hashSync("1234560", 8),
         image_url: "https://cdn-icons-png.flaticon.com/128/2202/2202112.png",
     })
@@ -75,17 +86,32 @@ const initStates = async () => {
         bankname: "City Bank",
         accountname: "Random Customer",
         accountnumber: "1234567890",
+        compId: 0,
         balance: 0,
         address: "Random",
         email: "randomcustomer@gmail.com",
         stateId: 1,
         usertype: "Retailer",
         cretedby: 1,
+        creator: "",
         image_url: "https://cdn-icons-png.flaticon.com/128/2202/2202112.png",
     })
     await db.role.create({
         userId: 1,
         name: 'superadmin'
+    })
+    await db.role.create({
+        userId: 1,
+        name: 'admin'
+    })
+    await db.company.create({
+        name: "Kazal and Brothers",
+        image_url: "https://cdn-icons-png.flaticon.com/128/2202/2202112.png",
+        description: "Description",
+        email: "kazalandbrother@gmail.com",
+        phone: "1234567890",
+        address: "Madaripur",
+        footertext: "Copyright© Kazlandbrothers",
     })
 }
 

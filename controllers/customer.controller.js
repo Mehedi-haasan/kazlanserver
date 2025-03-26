@@ -1,5 +1,4 @@
 const db = require("../models");
-const { Op } = require("sequelize");
 
 
 exports.GetWholesellCustomer = async (req, res) => {
@@ -7,7 +6,7 @@ exports.GetWholesellCustomer = async (req, res) => {
         let data = await db.customer.findAll({
             limit: 15,
             where: {
-                cretedby: req.userId,
+                compId: req.compId,
                 usertype: "Wholesaler",
                 stateId: req.params.stateId
             }
@@ -30,7 +29,7 @@ exports.WholesellCustomer = async (req, res) => {
         let data = await db.customer.findAll({
             limit: pageSize,
             where: {
-                cretedby: req.userId,
+                compId: req.compId,
                 usertype: "Wholesaler",
             },
             offset: offset
@@ -53,7 +52,7 @@ exports.GetRetailerCustomer = async (req, res) => {
         let data = await db.customer.findAll({
             limit: pageSize,
             where: {
-                createdby: req.userId,
+                compId: req.compId,
                 usertype: "Retailer",
                 stateId: req.params.stateId
             },
@@ -74,7 +73,7 @@ exports.RetailerCustomer = async (req, res) => {
         let data = await db.customer.findAll({
             limit: 15,
             where: {
-                createdby: req.userId,
+                compId: req.compId,
                 usertype: "Retailer",
             }
         })
@@ -96,7 +95,7 @@ exports.GetSupplier = async (req, res) => {
         let data = await db.customer.findAll({
             limit: pageSize,
             where: {
-                cretedby: req.userId,
+                compId: req.compId,
                 usertype: "Supplier"
             },
             offset: offset
@@ -122,9 +121,12 @@ exports.CreateCustomer = async (req, res) => {
             accountnumber: accountnumber,
             balance: balance,
             address: address,
-            email: email, stateId: stateId,
+            email: email, 
+            stateId: stateId,
+            compId:req.compId,
             usertype: usertype,
-            cretedby: req.userId,
+            usertype: usertype,
+            creator: req.user,
             image_url: image_url
         })
         res.status(200).send({

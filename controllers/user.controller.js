@@ -148,8 +148,7 @@ exports.getShopList = async (req, res) => {
     const offset = (page - 1) * pageSize;
     try {
         // Fetch all shops
-        const shops = await User.findAll({
-            where: { usertype: { [Op.or]: ["Wholesaler", "Retailer"] } },
+        const shops = await db.company.findAll({
             attributes: ["id", "name"],
             limit: pageSize,
             offset: offset
@@ -163,7 +162,7 @@ exports.getShopList = async (req, res) => {
                 shops.map(async (shop) => {
                     const products = await Product.findAll({
                         where: {
-                            createdby: shop.id,
+                            compId: shop.id,
                         },
                         attributes: ["id", "name", "cost", "price", "qty"]
                     });
@@ -204,7 +203,12 @@ exports.getSingleUsers = async (req, res) => {
         const data = await User.findOne({
             where: {
                 id: req.userId
-            }
+            },
+            include: [
+                {
+                    model: db.state
+                }
+            ]
         })
         res.status(200).send({
             success: true,

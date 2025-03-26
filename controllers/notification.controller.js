@@ -1,7 +1,6 @@
 const db = require("../models");
 const Notification = db.notification;
 const User = db.user;
-const Op = db.Sequelize.Op;
 
 
 
@@ -11,14 +10,9 @@ exports.getNotification = async (req, res) => {
             limit: 10,
             order: [['id', 'DESC']],
             where: {
-                isSeen: 'false'
-            },
-            include: [
-                {
-                    model: User,
-                    attributes: ['id', 'first_name', 'last_name', 'email', 'image_url']
-                }
-            ]
+                isSeen: 'false',
+                compId: req?.compId
+            }
         })
         res.status(200).send({
             success: true,

@@ -1,7 +1,6 @@
 const db = require("../models");
 const Category = db.category;
 const deletePhoto = require('./filedelete.controller')
-const Op = db.Sequelize.Op;
 
 
 
@@ -13,7 +12,7 @@ exports.getCategory = async (req, res) => {
         let data = await Category.findAll({
             limit: pageSize,
             attributes: ['id', 'name', 'image_url'],
-            where: { createdby: req.userId },
+            where: { compId: req.compId },
             offset: offset
         })
         res.status(200).send({
@@ -32,7 +31,7 @@ exports.getCategoryAll = async (req, res) => {
     try {
         let data = await Category.findAll({
             attributes: ['id', 'name', 'image_url'],
-            where: { createdby: req.userId },
+            where: { compId: req.compId },
         })
         res.status(200).send({
             success: true,
@@ -93,7 +92,9 @@ exports.CreateCategory = async (req, res) => {
         await Category.create({
             name: req.body.name,
             image_url: req.body.image_url,
-            createdby: req.userId
+            createdby: req.userId,
+            compId: req.compId,
+            creator: req.user
         });
 
         res.status(200).send({

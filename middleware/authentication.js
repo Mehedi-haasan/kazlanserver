@@ -60,8 +60,12 @@ verifyToken = async (req, res, next) => {
         }
 
         const user = await User.findByPk(decoded.id);
-
+        if (!user) {
+            return res.status(401).json({ message: 'User not found' });
+        }
         req.userId = user.id;
+        req.user = user.name;
+        req.compId = user.compId;
         next();
     });
 };

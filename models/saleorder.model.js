@@ -12,6 +12,9 @@ module.exports = (sequelize, Sequelize) => {
         invoice_id: {
             type: Sequelize.INTEGER,
         },
+        compId: {
+            type: Sequelize.INTEGER,
+        },
         product_id: {
             type: Sequelize.INTEGER,
         },
@@ -32,13 +35,16 @@ module.exports = (sequelize, Sequelize) => {
         },
         discount: {
             type: Sequelize.INTEGER,
-        }, 
+        },
         createdby: {
             type: Sequelize.INTEGER,
         },
+        creator: {
+            type: Sequelize.STRING,
+        },
         sellprice: {
             type: Sequelize.INTEGER,
-        }, 
+        },
         qty: {
             type: Sequelize.INTEGER,
         },

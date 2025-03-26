@@ -32,11 +32,17 @@ module.exports = (sequelize, Sequelize) => {
         stateId: {
             type: Sequelize.INTEGER,
         },
+        compId: {
+            type: Sequelize.INTEGER,
+        },
         usertype: {
             type: Sequelize.STRING
         },
         cretedby: {
             type: Sequelize.INTEGER
+        },
+        creator: {
+            type: Sequelize.STRING
         },
         image_url: {
             type: Sequelize.STRING,
