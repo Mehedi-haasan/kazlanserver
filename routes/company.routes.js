@@ -10,7 +10,7 @@ module.exports = function (app) {
     })
 
     app.post('/api/create/company/info', [jwt.verifyToken, jwt.isSuperAdmin], controller.CreateInfo);
-    app.post('/api/update/company/info', jwt.verifyToken, controller.updateInfo);
-    app.get('/api/get/company/info', jwt.verifyToken, controller.GetCompanyInfo);
+    app.post('/api/update/company/info', [jwt.verifyToken, jwt.isSuperAdmin], controller.updateInfo);
+    app.get('/api/get/company/info/:id', jwt.verifyToken, controller.GetCompanyInfo);
     app.get('/api/get/all/company', [jwt.verifyToken, jwt.isSuperAdmin], controller.GetAllCompany);
 }

@@ -1,5 +1,6 @@
 const db = require('../models');
 const Company = db.company;
+const deletePhoto = require('../controllers/filedelete.controller')
 
 
 exports.CreateInfo = async (req, res) => {
@@ -40,7 +41,7 @@ exports.CreateInfo = async (req, res) => {
 
 
 exports.updateInfo = async (req, res) => {
-    const { userId, name, description, email, phone, address, image_url, footertext } = req.body;
+    const { id, userId, name, description, email, phone, address, image_url, update_url, footertext } = req.body;
 
     try {
         const [updated] = await Company.update({
@@ -55,11 +56,12 @@ exports.updateInfo = async (req, res) => {
         },
             {
                 where: {
-                    userId: req?.userId
+                    id: id
                 }
             });
 
         if (updated) {
+            deletePhoto(update_url)
             res.status(200).send({
                 success: true,
                 message: 'Company info updated successfully'
@@ -78,11 +80,12 @@ exports.updateInfo = async (req, res) => {
     }
 };
 
+
 exports.GetCompanyInfo = async (req, res) => {
     try {
         const data = await Company.findOne({
             where: {
-                id: req.compId
+                id: req.params?.id
             }
         });
         res.status(200).send({

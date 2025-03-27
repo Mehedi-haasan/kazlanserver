@@ -4,7 +4,6 @@ var bcrypt = require("bcryptjs");
 const config = require("../config/auth.config");
 const User = db.user;
 const Role = db.role;
-const UserDue = db.userdue;
 
 const Op = db.Sequelize.Op;
 
@@ -20,7 +19,7 @@ const RoleSetup = async (rules, userId) => {
 };
 
 exports.singUp = async (req, res) => {
-    const { name, username, whatsapp, bankname, accountname, accountnumber, address, email, stateId, compId, usertype, password, image_url } = req.body;
+    const { name, username, bankname, accountname, accountnumber, address, email, stateId, compId, usertype, password, image_url } = req.body;
     try {
         const data = await User.findOne({
             where: {
@@ -32,7 +31,7 @@ exports.singUp = async (req, res) => {
         })
 
         if (data) {
-            return res.status(204).send({
+            return res.status(200).send({
                 success: true,
                 message: "User Already exist",
             })
@@ -41,7 +40,6 @@ exports.singUp = async (req, res) => {
         await User.create({
             name: name,
             username: username,
-            whatsapp: whatsapp,
             bankname: bankname,
             accountname: accountname,
             accountnumber: accountnumber,
@@ -124,6 +122,7 @@ exports.singIn = async (req, res) => {
             success: true,
             message: "Login Successfully",
             name: data?.name,
+            compId: data?.compId,
             image: data?.image_url,
             logo: comp?.image_url,
             shopname: comp?.name,

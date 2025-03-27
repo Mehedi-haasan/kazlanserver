@@ -8,7 +8,6 @@ exports.GetWholesellCustomer = async (req, res) => {
             where: {
                 compId: req.compId,
                 usertype: "Wholesaler",
-                stateId: req.params.stateId
             }
         })
         res.status(200).send({
@@ -54,7 +53,6 @@ exports.GetRetailerCustomer = async (req, res) => {
             where: {
                 compId: req.compId,
                 usertype: "Retailer",
-                stateId: req.params.stateId
             },
             offset: offset
         })
@@ -125,7 +123,7 @@ exports.CreateCustomer = async (req, res) => {
             stateId: stateId,
             compId:req.compId,
             usertype: usertype,
-            usertype: usertype,
+            cretedby:req.userId,
             creator: req.user,
             image_url: image_url
         })

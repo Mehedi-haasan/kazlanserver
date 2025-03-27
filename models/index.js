@@ -16,6 +16,7 @@ const sequelize = new Sequelize(config.DB, config.USER, config.PASSWORD, {
   logging: false, 
 });
 
+
 // Create `db` object
 const db = {};
 db.Sequelize = Sequelize;

@@ -56,7 +56,7 @@ exports.getProductTemplete = async (req, res) => {
   const offset = (page - 1) * pageSize;
   try {
     let data = await Product.findAll({
-      where: { createdby: req.userId },
+      where: { compId: req.compId },
       limit: pageSize,
       offset: offset,
       order: [['createdAt', 'DESC']],
@@ -110,9 +110,8 @@ exports.searchProduct = async (req, res) => {
   try {
     let data = await Product.findAll({
       where: {
-        name: {
-          [Op.like]: `%${searchTerm}%` // Use LIKE for partial match
-        }
+        name: { [Op.like]: `%${searchTerm}%` },
+        compId: req?.compId
       }
     });
 

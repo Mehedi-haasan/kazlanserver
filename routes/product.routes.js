@@ -15,7 +15,7 @@ module.exports = function (app) {
     app.post("/api/create/product", [Jwt.verifyToken, Jwt.isAdmin], controller.createProduct);
     app.post("/api/update/product", [Jwt.verifyToken, Jwt.isAdmin], controller.UpdateProduct);
     app.get("/api/get/product/templete/:page/:pageSize", Jwt.verifyToken, controller.getProductTemplete);
-    app.get("/api/get/product/search/:product", controller.searchProduct);
+    app.get("/api/get/product/search/:product", Jwt.verifyToken, controller.searchProduct);
     app.post("/api/delete/product", [Jwt.verifyToken, Jwt.isAdmin], controller.DeleteProduct);
 
 };

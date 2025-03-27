@@ -5,6 +5,7 @@ const Product = db.product;
 const Notification = db.notification;
 const Invoice = db.invoice;
 const Op = db.Sequelize.Op;
+const sequelize = db.sequelize;
 
 
 exports.getAllOrder = async (req, res) => {
@@ -129,7 +130,7 @@ exports.getDailySalse = async (req, res) => {
         let data = await SaleOrder.findAll({
             where: {
                 createdAt: { [Op.gte]: today },
-                createdby: req?.userId
+                compId: req?.compId
             },
             limit: 300,
             order: [["createdAt", "DESC"]]
@@ -204,8 +205,12 @@ const UserDueCreate = async (userId, amount) => {
 };
 
 exports.CreateOrder = async (req, res) => {
+
+    const { shop, customername, orders, userId, amount, total, previousdue, paidamount, date } = req.body;
+
+    let transaction;
     try {
-        const { shop, customername, orders, userId, amount, total, previousdue, paidamount, date } = req.body;
+        transaction = await sequelize.transaction();
         const invoice = await Invoice.create({
             date: date,
             compId: req?.compId,
@@ -248,6 +253,7 @@ exports.CreateOrder = async (req, res) => {
             createdby: req?.userId,
             creator: req?.user
         });
+        await transaction.commit();
         res.status(200).send({
             success: true,
             message: "Order Create Successfull",
@@ -257,6 +263,7 @@ exports.CreateOrder = async (req, res) => {
         })
 
     } catch (error) {
+        if (transaction) await transaction.rollback();
         res.status(500).send({ success: false, message: error.message });
     }
 }
@@ -268,13 +275,13 @@ exports.RecentInvoice = async (req, res) => {
         const offset = (page - 1) * pageSize;
 
         let data = await Invoice.findAll({
-            where: { createdby: req?.userId },
+            where: { compId: req?.compId },
             limit: pageSize,
             offset: offset,
             order: [['createdAt', 'DESC']],
         });
 
-        const totalInvoices = await Invoice.count({ where: { createdby: req?.userId } });
+        const totalInvoices = await Invoice.count({ where: { compId: req?.compId } });
         const totalPages = Math.ceil(totalInvoices / pageSize);
 
         res.status(200).send({
@@ -313,7 +320,7 @@ exports.getMonthlyOrder = async (req, res) => {
         let data = await SaleOrder.findAll({
             where: {
                 createdAt: { [Op.gte]: firstDayOfMonth },
-                createdby: req?.userId
+                compId: req?.compId
             },
             limit: 500,
             order: [["createdAt", "DESC"]]
@@ -343,7 +350,6 @@ exports.getMonthlyOrder = async (req, res) => {
 exports.ReturnSale = async (req, res) => {
     const { data, invoiceId } = req.body;
 
-    // Validate request body
     if (!Array.isArray(data) || data.length === 0) {
         return res.status(400).send({
             success: false,
@@ -358,52 +364,53 @@ exports.ReturnSale = async (req, res) => {
         });
     }
 
+    let transaction;
+
     try {
+        transaction = await sequelize.transaction();
         for (const pro of data) {
-            const product = await Product.findOne({ where: { id: pro?.id } });
+            const product = await Product.findOne({ where: { id: pro?.product_id }, transaction });
 
             if (product) {
-                // Ensure valid numbers for quantity calculation
                 const currentQty = parseInt(product.qty) || 0;
                 const returnQty = parseInt(pro?.qty) || 0;
                 const updatedQty = currentQty + returnQty;
 
-                await Product.update({ qty: updatedQty }, { where: { id: product.id } });
+                await Product.update({ qty: updatedQty }, { where: { id: product.id }, transaction });
             } else {
-                console.log(`Product with ID ${pro?.id} not found`);
+                throw new Error(`Product with ID ${pro?.product_id} not found`);
             }
         }
 
-        // Fetch invoice details
-        const InvoiceData = await Invoice.findOne({ where: { id: invoiceId } });
+        const InvoiceData = await Invoice.findOne({ where: { id: invoiceId }, transaction });
         if (!InvoiceData) {
-            return res.status(404).send({
-                success: false,
-                message: "Invoice not found",
-            });
+            throw new Error("Invoice not found");
         }
 
-        // Fetch user due details
-        const due = await Customer.findOne({ where: { id: InvoiceData?.userId } });
+        const due = await Customer.findOne({ where: { id: InvoiceData?.userId }, transaction });
         if (due) {
             const updatedDue = (parseInt(due.balance) || 0) - parseInt(InvoiceData.paidamount);
-            await Customer.update({ balance: updatedDue }, { where: { id: InvoiceData.userId } });
+            await Customer.update({ balance: updatedDue }, { where: { id: InvoiceData.userId }, transaction });
         }
 
-        // Delete invoice and related records
-        await Invoice.destroy({ where: { id: invoiceId } });
-        await SaleOrder.destroy({ where: { invoice_id: invoiceId } });
-        await Notification.destroy({ where: { invoiceId: invoiceId } });
 
-        res.status(200).send({
+        await Invoice.destroy({ where: { id: invoiceId }, transaction });
+        await SaleOrder.destroy({ where: { invoice_id: invoiceId }, transaction });
+        await Notification.destroy({ where: { invoiceId: invoiceId }, transaction });
+
+        await transaction.commit();
+
+        return res.status(200).send({
             success: true,
             message: "Product returned successfully",
         });
     } catch (error) {
+        await transaction.rollback();
         console.error("Error in ReturnSale:", error);
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 };
+
 
 
 exports.ReturnPurchase = async (req, res) => {
@@ -415,8 +422,10 @@ exports.ReturnPurchase = async (req, res) => {
             message: "Invalid or empty product update data",
         });
     }
+    let transaction;
 
     try {
+        transaction = await sequelize.transaction();
         for (const pro of data) {
             const product = await Product.findOne({ where: { id: pro?.id } });
 
@@ -430,12 +439,13 @@ exports.ReturnPurchase = async (req, res) => {
                 console.log(`Product with ID ${pro?.id} not found`);
             }
         }
-
+        await transaction.commit();
         res.status(200).send({
             success: true,
             message: "Product returned successfully",
         });
     } catch (error) {
+        await transaction.rollback();
         console.error("Error in ReturnSale:", error);
         res.status(500).send({ success: false, message: error.message });
     }
