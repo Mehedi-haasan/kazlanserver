@@ -1,5 +1,6 @@
 const db = require("../models");
 const Product = db.product;
+const Customer = db.customer;
 const Op = db.Sequelize.Op;
 const deletePhoto = require('./filedelete.controller')
 
@@ -126,16 +127,12 @@ exports.searchProduct = async (req, res) => {
 };
 
 exports.UpdateProduct = async (req, res) => {
-  const updateProducts = req.body;
+  const { allData, balance, userId } = req.body;
 
-  if (!Array.isArray(updateProducts) || updateProducts.length === 0) {
-    return res.status(400).send({ success: false, message: "Invalid or empty product update data" });
-  }
 
   try {
-    const Products = [];
 
-    for (const pro of updateProducts) {
+    for (const pro of allData) {
       const product = await Product.findOne({
         where: { id: pro?.id },
       });
@@ -154,6 +151,15 @@ exports.UpdateProduct = async (req, res) => {
       } else {
         console.log(`Product with ID ${pro?.product_id} not found`);
       }
+    }
+
+    const user = await Customer.findOne({ where: { id: userId } });
+
+    if (user) {
+      await Customer.update(
+        { balance: user.balance + parseInt(balance) },
+        { where: { id: userId } }
+      );
     }
 
     res.status(200).send({

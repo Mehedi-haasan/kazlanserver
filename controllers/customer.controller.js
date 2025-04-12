@@ -8,6 +8,7 @@ exports.GetWholesellCustomer = async (req, res) => {
             where: {
                 compId: req.compId,
                 usertype: "Wholesaler",
+                stateId:req.params.stateId
             }
         })
         res.status(200).send({

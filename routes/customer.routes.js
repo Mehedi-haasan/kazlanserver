@@ -19,6 +19,7 @@ module.exports = function (app) {
 
     app.get("/api/get/wholesell/customers/:page/:pageSize", [jwt.verifyToken], controller.WholesellCustomer);
     app.get("/api/get/wholesell/customers/:stateId", [jwt.verifyToken], controller.GetWholesellCustomer);
+    
 
 
 
