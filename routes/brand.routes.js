@@ -12,6 +12,7 @@ module.exports = function (app) {
 
     app.post("/api/create/brand", [jwt.verifyToken, jwt.isAdmin], controller.CreateBrand);
     app.get("/api/get/brand/:page/:pageSize", jwt.verifyToken, controller.getBrandWithPage);
+    app.get("/api/get/brand/search/:name", jwt.verifyToken, controller.searchBrand);
     app.get("/api/get/brand", jwt.verifyToken, controller.getBrandAll);
     app.patch("/api/update/brand", [jwt.verifyToken, jwt.isAdmin], controller.updateBrand);
     app.post("/api/delete/brand", [jwt.verifyToken, jwt.isAdmin], controller.DeleteBrand);

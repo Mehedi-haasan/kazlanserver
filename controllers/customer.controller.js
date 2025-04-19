@@ -8,7 +8,7 @@ exports.GetWholesellCustomer = async (req, res) => {
             where: {
                 compId: req.compId,
                 usertype: "Wholesaler",
-                stateId:req.params.stateId
+                stateId: req.params.stateId
             }
         })
         res.status(200).send({
@@ -110,7 +110,7 @@ exports.GetSupplier = async (req, res) => {
 }
 
 exports.CreateCustomer = async (req, res) => {
-    const { name, phone, bankname, accountname, accountnumber, balance, address, email, stateId, usertype, image_url } = req.body;
+    const { name, phone, bankname, accountname, accountnumber, balance, balance_type, address, email, stateId, usertype, image_url } = req.body;
     try {
         let data = await db.customer.create({
             name: name,
@@ -119,12 +119,13 @@ exports.CreateCustomer = async (req, res) => {
             accountname: accountname,
             accountnumber: accountnumber,
             balance: balance,
+            balance_type: balance_type,
             address: address,
-            email: email, 
+            email: email,
             stateId: stateId,
-            compId:req.compId,
+            compId: req.compId,
             usertype: usertype,
-            cretedby:req.userId,
+            cretedby: req.userId,
             creator: req.user,
             image_url: image_url
         })
@@ -248,6 +249,30 @@ exports.GetCustomerDue = async (req, res) => {
         res.status(200).send({
             success: true,
             balance: data?.balance
+        })
+
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+}
+
+
+exports.PaymentHistory = async (req, res) => {
+
+    // const page = parseInt(req.params.page) || 1;
+    // const pageSize = parseInt(req.params.pageSize) || 10;
+    // const offset = (page - 1) * pageSize;
+    try {
+        let data = await db.customer.findOne({ where: { id: req.params.id } });
+        let history = await db.invoice.findAll({
+            where: {
+                userId: req.params.id
+            }
+        })
+        res.status(200).send({
+            success: true,
+            items: data,
+            history: history
         })
 
     } catch (error) {

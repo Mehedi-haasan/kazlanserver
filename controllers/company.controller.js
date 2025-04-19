@@ -115,3 +115,24 @@ exports.GetAllCompany = async (req, res) => {
         });
     }
 };
+
+
+exports.DeleteCompany = async (req, res) => {
+    try {
+        const data = await Company.destroy({
+            where: {
+                id: req.params.id
+            }
+        });
+
+        res.status(200).send({
+            success: true,
+            items: data
+        });
+    } catch (error) {
+        res.status(500).send({
+            success: false,
+            message: error.message
+        });
+    }
+};

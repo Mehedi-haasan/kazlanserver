@@ -36,7 +36,7 @@ require('./routes/notification.routes')(app);
 require('./routes/customer.routes')(app);
 
 
-// db.sequelize.sync({ force: true }).then(async () => {
+// db.sequelize.sync({ force: false }).then(async () => {
 //     await initStates();
 //     // await initUserRoles();
 //     // await initCarousel();

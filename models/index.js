@@ -97,4 +97,31 @@ db.saleorder.belongsTo(db.invoice, {
 });
 
 
+db.brand.hasMany(db.product, {
+  foreignKey: "brandId",
+  onDelete: 'CASCADE',
+});
+db.product.belongsTo(db.brand, {
+  foreignKey: "brandId",
+  onDelete: 'CASCADE',
+});
+
+db.category.hasMany(db.product, {
+  foreignKey: "categoryId",
+  onDelete: 'CASCADE',
+});
+db.product.belongsTo(db.category, {
+  foreignKey: "categoryId",
+  onDelete: 'CASCADE',
+});
+
+db.company.hasMany(db.product, {
+  foreignKey: "compId",
+  onDelete: 'CASCADE',
+});
+db.product.belongsTo(db.company, {
+  foreignKey: "compId",
+  onDelete: 'CASCADE',
+});
+
 module.exports = db;

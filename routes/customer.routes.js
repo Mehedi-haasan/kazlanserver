@@ -30,4 +30,7 @@ module.exports = function (app) {
     app.get("/api/get/suppliers/:page/:pageSize", [jwt.verifyToken], controller.GetSupplier);
     app.get("/api/get/customer/due/:userId", [jwt.verifyToken], controller.GetCustomerDue);
 
+
+    app.get("/api/get/payment/history/:id", [jwt.verifyToken], controller.PaymentHistory);
+
 };

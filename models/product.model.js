@@ -46,6 +46,15 @@ module.exports = (sequelize, Sequelize) => {
         },
         qty: {
             type: Sequelize.INTEGER
+        },
+        qty_type: {
+            type: Sequelize.STRING
+        },
+        discount: {
+            type: Sequelize.INTEGER
+        },
+        discount_type: {
+            type: Sequelize.STRING
         }
 
     });

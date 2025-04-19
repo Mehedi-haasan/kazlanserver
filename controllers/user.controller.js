@@ -125,12 +125,7 @@ exports.getSupplier = async (req, res) => {
 
 exports.getShop = async (req, res) => {
     try {
-        const data = await User.findAll({
-            where: {
-                usertype: { [Op.or]: ["Wholesale", "Retailer"] },
-                cretedby: req.userId
-            }
-        });
+        const data = await db.company.findAll({});
 
         res.status(200).send({
             success: true,

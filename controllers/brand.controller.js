@@ -1,5 +1,6 @@
 const db = require("../models");
 const Brand = db.brand;
+const Op = db.Sequelize.Op;
 const deletePhoto = require('../controllers/filedelete.controller')
 
 exports.getBrandAll = async (req, res) => {
@@ -26,15 +27,44 @@ exports.getBrandWithPage = async (req, res) => {
 
     try {
         let data = await Brand.findAll({
-            attributes: ['id', 'name', 'image_url'],
             where: { compId: req?.compId },
             limit: pageSize,
             offset: offset,
             order: [['createdAt', 'DESC']],
         })
+        const totalCount = await Brand.count({
+            where: {
+                compId: req?.compId
+            }
+        });
+
         res.status(200).send({
             success: true,
-            items: data
+            items: data,
+            count: totalCount
+        })
+
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+}
+
+
+
+exports.searchBrand = async (req, res) => {
+    const searchTerm = req.params.name;
+
+    try {
+        let data = await Brand.findAll({
+            where: {
+              name: { [Op.like]: `%${searchTerm}%` },
+              compId: req?.compId
+            }
+          });
+
+        res.status(200).send({
+            success: true,
+            items: data,
         })
 
     } catch (error) {
@@ -46,7 +76,7 @@ exports.getBrandWithPage = async (req, res) => {
 
 
 exports.CreateBrand = async (req, res) => {
-    console.log(req.user,"user")
+
     try {
         await Brand.create({
             name: req.body.name,

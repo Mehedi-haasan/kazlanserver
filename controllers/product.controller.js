@@ -1,3 +1,4 @@
+const { where } = require("sequelize");
 const db = require("../models");
 const Product = db.product;
 const Customer = db.customer;
@@ -12,7 +13,7 @@ exports.createProduct = async (req, res) => {
     const data = await Product.findOne({
       where: {
         name: req.body.name,
-        createdby: req.userId
+        compId: req.compId
       }
     })
 
@@ -24,10 +25,10 @@ exports.createProduct = async (req, res) => {
     }
 
     await Product.create({
-      acitve: true,
+      active: true,
       product_type: req.body.product_type,
       categoryId: req.body.categoryId,
-      compId: req.compId,
+      compId: req.body.compId ? req.body.compId : req.compId,
       supplier: req.body.supplier,
       name: req.body.name,
       description: req.body.description,
@@ -54,48 +55,52 @@ exports.createProduct = async (req, res) => {
 exports.getProductTemplete = async (req, res) => {
   const page = parseInt(req.params.page) || 1;
   const pageSize = parseInt(req.params.pageSize) || 10;
+  const brandId = parseInt(req.params.brandId);
+  const catId = parseInt(req.params.catId);
   const offset = (page - 1) * pageSize;
+  const compId = req?.params?.compId
+
+  const whereClause = {};
+  if (!isNaN(compId)) whereClause.compId = compId;
+  if (!isNaN(brandId)) whereClause.brandId = brandId;
+  if (!isNaN(catId)) whereClause.categoryId = catId;
+
   try {
-    let data = await Product.findAll({
-      where: { compId: req.compId },
+    const data = await Product.findAll({
+      where: whereClause,
       limit: pageSize,
       offset: offset,
       order: [['createdAt', 'DESC']],
-    })
+      include: [
+        { model: db.brand },
+        { model: db.category },
+        { model: db.company }
+      ]
+    });
+
+
+    const totalCount = await Product.count({ where: whereClause });
 
     res.status(200).send({
       success: true,
       items: data,
+      count: totalCount
     });
   } catch (error) {
     res.status(500).send({ success: false, message: error.message });
   }
 };
 
+
 exports.updateSingleProduct = async (req, res) => {
   try {
-    const { id, name, image_url, url } = req.body;
+    const item = req.body;
+    const { id } = req.body;
 
-    if (!id) {
-      return res.status(400).send({
-        success: false,
-        message: "Order ID and status are required."
-      });
-    }
+    await Product.update(item, {
+      where: { id: id }
+    });
 
-
-    const [updatedRowsCount] = await Brand.update(
-      { name: name, image_url: image_url },
-      { where: { id: id } }
-    );
-
-    if (updatedRowsCount === 0) {
-      return res.status(404).send({
-        success: false,
-        message: "Order not found or status is already the same."
-      });
-    }
-    deletePhoto(url)
     res.status(200).send({
       success: true,
       message: `Updated successfully`,
@@ -104,7 +109,37 @@ exports.updateSingleProduct = async (req, res) => {
   } catch (error) {
     res.status(500).send({ success: false, message: error.message });
   }
-}
+};
+
+exports.SingleProductTran = async (req, res) => {
+  try {
+    let product = await Product.findOne({
+      where: { id: req?.params?.id },
+      order: [['createdAt', 'DESC']],
+      include: [
+        { model: db.brand },
+        { model: db.category },
+        { model: db.company }
+      ],
+    });
+
+    let tran = await db.saleorder.findAll({
+      where: {
+        product_id: req?.params?.id
+      },
+      limit: 12
+    })
+
+    res.status(200).send({
+      success: true,
+      items: tran,
+      product: product
+    });
+
+  } catch (error) {
+    res.status(500).send({ success: false, message: error.message });
+  }
+};
 
 exports.searchProduct = async (req, res) => {
   const searchTerm = req.params.product;
@@ -114,6 +149,30 @@ exports.searchProduct = async (req, res) => {
         name: { [Op.like]: `%${searchTerm}%` },
         compId: req?.compId
       }
+    });
+
+    res.status(200).send({
+      success: true,
+      items: data,
+    });
+
+  } catch (error) {
+    res.status(500).send({ success: false, message: error.message });
+  }
+};
+
+exports.SingleProduct = async (req, res) => {
+  try {
+
+    const data = await Product.findOne({
+      where: {
+        id: req.params?.id
+      },
+      include: [
+        { model: db.brand },
+        { model: db.category },
+        { model: db.company }
+      ]
     });
 
     res.status(200).send({

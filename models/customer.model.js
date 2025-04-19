@@ -38,6 +38,9 @@ module.exports = (sequelize, Sequelize) => {
         usertype: {
             type: Sequelize.STRING
         },
+        balance_type: {
+            type: Sequelize.STRING
+        },
         cretedby: {
             type: Sequelize.INTEGER
         },

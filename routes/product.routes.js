@@ -13,9 +13,19 @@ module.exports = function (app) {
     });
 
     app.post("/api/create/product", [Jwt.verifyToken, Jwt.isAdmin], controller.createProduct);
+
+    app.post("/api/update/single/product", [Jwt.verifyToken, Jwt.isAdmin], controller.updateSingleProduct);
+
+    app.get("/api/get/single/product/tran/:id", [Jwt.verifyToken, Jwt.isAdmin], controller.SingleProductTran);
+
     app.post("/api/update/product", [Jwt.verifyToken, Jwt.isAdmin], controller.UpdateProduct);
-    app.get("/api/get/product/templete/:page/:pageSize", Jwt.verifyToken, controller.getProductTemplete);
-    app.get("/api/get/product/search/:product", Jwt.verifyToken, controller.searchProduct);
+
+    app.get("/api/get/product/templete/:page/:pageSize/:brandId/:catId/:compId", Jwt.verifyToken, controller.getProductTemplete);
+
+    app.get("/api/get/product/search/:id", controller.SingleProduct);
+
+    app.get("/api/get/product/:id", Jwt.verifyToken, controller.searchProduct);
+
     app.post("/api/delete/product", [Jwt.verifyToken, Jwt.isAdmin], controller.DeleteProduct);
 
 };

@@ -11,7 +11,6 @@ exports.getCategory = async (req, res) => {
     try {
         let data = await Category.findAll({
             limit: pageSize,
-            attributes: ['id', 'name', 'image_url'],
             where: { compId: req.compId },
             offset: offset
         })

@@ -13,4 +13,5 @@ module.exports = function (app) {
     app.post('/api/update/company/info', [jwt.verifyToken, jwt.isSuperAdmin], controller.updateInfo);
     app.get('/api/get/company/info/:id', jwt.verifyToken, controller.GetCompanyInfo);
     app.get('/api/get/all/company', [jwt.verifyToken, jwt.isSuperAdmin], controller.GetAllCompany);
+    app.delete('/api/delete/company/:id', [jwt.verifyToken, jwt.isSuperAdmin], controller.DeleteCompany);
 }
