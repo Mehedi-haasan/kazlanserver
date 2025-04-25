@@ -5,7 +5,7 @@ const deletePhoto = require('../controllers/filedelete.controller')
 
 exports.CreateInfo = async (req, res) => {
     try {
-        const { name, description, email, phone, address, image_url, footertext } = req.body;
+        const { name, description, email, phone, address, image_url, shopcode, footertext } = req.body;
         if (!req.userId) {
             return res.status(401).send({
                 success: false,
@@ -20,6 +20,7 @@ exports.CreateInfo = async (req, res) => {
             email,
             phone,
             address,
+            shopcode,
             footertext,
         });
 
@@ -41,7 +42,7 @@ exports.CreateInfo = async (req, res) => {
 
 
 exports.updateInfo = async (req, res) => {
-    const { id, userId, name, description, email, phone, address, image_url, update_url, footertext } = req.body;
+    const { id, userId, name, description, email, phone, address, image_url, update_url,shopcode, footertext } = req.body;
 
     try {
         const [updated] = await Company.update({
@@ -52,6 +53,7 @@ exports.updateInfo = async (req, res) => {
             email,
             phone,
             address,
+            shopcode,
             footertext
         },
             {
@@ -127,7 +129,7 @@ exports.DeleteCompany = async (req, res) => {
 
         res.status(200).send({
             success: true,
-            items: data
+            message: "Shop Delete Successfully"
         });
     } catch (error) {
         res.status(500).send({

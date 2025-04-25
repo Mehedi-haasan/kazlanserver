@@ -181,9 +181,12 @@ exports.getShopList = async (req, res) => {
             );
         }
 
+        let count = await db.company.count({});
+
         res.status(200).send({
             success: true,
             items: shopData,
+            count: count
         });
 
     } catch (error) {

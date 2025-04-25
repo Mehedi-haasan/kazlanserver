@@ -53,14 +53,14 @@ exports.getBrandWithPage = async (req, res) => {
 
 exports.searchBrand = async (req, res) => {
     const searchTerm = req.params.name;
-
+    console.log(searchTerm, "Search")
     try {
         let data = await Brand.findAll({
             where: {
-              name: { [Op.like]: `%${searchTerm}%` },
-              compId: req?.compId
+                name: { [Op.like]: `%${searchTerm}%` },
+                compId: req?.compId
             }
-          });
+        });
 
         res.status(200).send({
             success: true,
@@ -111,7 +111,7 @@ exports.updateBrand = async (req, res) => {
 
 
         const [updatedRowsCount] = await Brand.update(
-            { name: name, image_url: image_url },
+            { name: name, image_url: image_url, creator: req.user },
             { where: { id: id } }
         );
 

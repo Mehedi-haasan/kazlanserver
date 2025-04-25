@@ -1,6 +1,7 @@
 const db = require("../models");
 const Category = db.category;
 const deletePhoto = require('./filedelete.controller')
+const Op = db.Sequelize.Op;
 
 
 
@@ -14,9 +15,13 @@ exports.getCategory = async (req, res) => {
             where: { compId: req.compId },
             offset: offset
         })
+
+        const totalCount = await Category.count({ where: { compId: req.compId } });
+
         res.status(200).send({
             success: true,
-            items: data
+            items: data,
+            count: totalCount
         })
 
     } catch (error) {
@@ -111,6 +116,7 @@ exports.CreateCategory = async (req, res) => {
 exports.updateCategory = async (req, res) => {
     try {
         const { id, name, image_url, url } = req.body;
+        console.log(req.user)
 
         if (!id) {
             return res.status(400).send({
@@ -121,7 +127,7 @@ exports.updateCategory = async (req, res) => {
 
 
         const [updatedRowsCount] = await Category.update(
-            { name: name, image_url: image_url },
+            { name: name, image_url: image_url, creator: req.user },
             { where: { id: id } }
         );
 
@@ -143,6 +149,28 @@ exports.updateCategory = async (req, res) => {
         res.status(500).send({ success: false, message: error.message });
     }
 }
+
+
+exports.SearchCategory = async (req, res) => {
+    const searchTerm = req.params.name;
+    try {
+        let data = await Category.findAll({
+            where: {
+                name: { [Op.like]: `%${searchTerm}%` },
+                compId: req?.compId
+            }
+        });
+
+        res.status(200).send({
+            success: true,
+            items: data,
+        })
+
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+}
+
 
 exports.DeleteCategory = async (req, res) => {
     const { id, url } = req.body;

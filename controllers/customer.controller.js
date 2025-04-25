@@ -1,14 +1,14 @@
 const db = require("../models");
 
 
-exports.GetWholesellCustomer = async (req, res) => {
+exports.GetCustomerWithState = async (req, res) => {
     try {
         let data = await db.customer.findAll({
-            limit: 15,
+            limit: 20,
             where: {
                 compId: req.compId,
-                usertype: "Wholesaler",
-                stateId: req.params.stateId
+                stateId: req.params.stateId,
+                usertype: "Customer"
             }
         })
         res.status(200).send({
@@ -21,7 +21,7 @@ exports.GetWholesellCustomer = async (req, res) => {
     }
 }
 
-exports.WholesellCustomer = async (req, res) => {
+exports.GetCustomerWithPage = async (req, res) => {
     const page = parseInt(req.params.page) || 1;
     const pageSize = parseInt(req.params.pageSize) || 10;
     const offset = (page - 1) * pageSize;
@@ -30,7 +30,7 @@ exports.WholesellCustomer = async (req, res) => {
             limit: pageSize,
             where: {
                 compId: req.compId,
-                usertype: "Wholesaler",
+                usertype: "Customer"
             },
             offset: offset
         })
@@ -53,7 +53,6 @@ exports.GetRetailerCustomer = async (req, res) => {
             limit: pageSize,
             where: {
                 compId: req.compId,
-                usertype: "Retailer",
             },
             offset: offset
         })
@@ -73,7 +72,6 @@ exports.RetailerCustomer = async (req, res) => {
             limit: 15,
             where: {
                 compId: req.compId,
-                usertype: "Retailer",
             }
         })
         res.status(200).send({
@@ -86,7 +84,7 @@ exports.RetailerCustomer = async (req, res) => {
     }
 }
 
-exports.GetSupplier = async (req, res) => {
+exports.GetSupplierWithPage = async (req, res) => {
     const page = parseInt(req.params.page) || 1;
     const pageSize = parseInt(req.params.pageSize) || 10;
     const offset = (page - 1) * pageSize;
@@ -110,7 +108,8 @@ exports.GetSupplier = async (req, res) => {
 }
 
 exports.CreateCustomer = async (req, res) => {
-    const { name, phone, bankname, accountname, accountnumber, balance, balance_type, address, email, stateId, usertype, image_url } = req.body;
+    const { name, phone, bankname, accountname, accountnumber, balance,
+        balance_type, address, email, stateId, usertype, image_url } = req.body;
     try {
         let data = await db.customer.create({
             name: name,
@@ -248,7 +247,8 @@ exports.GetCustomerDue = async (req, res) => {
         let data = await db.customer.findOne({ where: { id: req.params.userId, } })
         res.status(200).send({
             success: true,
-            balance: data?.balance
+            balance: data?.balance,
+            phone: data?.phone
         })
 
     } catch (error) {
@@ -259,9 +259,6 @@ exports.GetCustomerDue = async (req, res) => {
 
 exports.PaymentHistory = async (req, res) => {
 
-    // const page = parseInt(req.params.page) || 1;
-    // const pageSize = parseInt(req.params.pageSize) || 10;
-    // const offset = (page - 1) * pageSize;
     try {
         let data = await db.customer.findOne({ where: { id: req.params.id } });
         let history = await db.invoice.findAll({

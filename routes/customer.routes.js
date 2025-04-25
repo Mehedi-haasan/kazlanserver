@@ -12,14 +12,22 @@ module.exports = function (app) {
 
     app.post("/api/create/customers", [jwt.verifyToken], controller.CreateCustomer);
 
+    app.get("/api/get/customers/:page/:pageSize", [jwt.verifyToken], controller.GetCustomerWithPage);
+    app.get("/api/get/suppliers/:page/:pageSize", [jwt.verifyToken], controller.GetSupplierWithPage);
+    app.get("/api/get/customers/:stateId", [jwt.verifyToken], controller.GetCustomerWithState);
+    
+
+
+
+
+
+
+
+
 
     app.post("/api/update/customer/:id", [jwt.verifyToken, jwt.isAdmin], controller.UpdateCustomer);
     app.post("/api/update/supplier/:id", [jwt.verifyToken,jwt.isAdmin], controller.UpdateSupplier);
 
-
-    app.get("/api/get/wholesell/customers/:page/:pageSize", [jwt.verifyToken], controller.WholesellCustomer);
-    app.get("/api/get/wholesell/customers/:stateId", [jwt.verifyToken], controller.GetWholesellCustomer);
-    
 
 
 
@@ -27,7 +35,7 @@ module.exports = function (app) {
     app.get("/api/get/retail/customers/:stateId", [jwt.verifyToken], controller.GetRetailerCustomer);
 
 
-    app.get("/api/get/suppliers/:page/:pageSize", [jwt.verifyToken], controller.GetSupplier);
+ 
     app.get("/api/get/customer/due/:userId", [jwt.verifyToken], controller.GetCustomerDue);
 
 

@@ -126,6 +126,7 @@ exports.singIn = async (req, res) => {
             image: data?.image_url,
             logo: comp?.image_url,
             shopname: comp?.name,
+            shopcode:comp?.shopcode,
             role: role?.name,
             id: data?.id,
             usertype: data?.usertype,

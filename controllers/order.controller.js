@@ -62,11 +62,22 @@ exports.getOrder = async (req, res) => {
             }
         })
 
+        let state = await db.state.findOne({
+            where: {
+                id: user?.stateId
+            }
+        })
+
+        let userData = {
+            ...user?.toJSON(),
+            state: state?.name
+        };
+
 
         res.status(200).send({
             success: true,
             items: data,
-            user: user
+            user: userData,
         })
 
     } catch (error) {
@@ -223,7 +234,7 @@ exports.CreateOrder = async (req, res) => {
             previousdue: previousdue,
             paidamount: paidamount,
             due: (total + previousdue) - paidamount,
-            status: total <= paidamount ? 'PAID' : 'UNPAID'
+            status: total <= paidamount ? 'PAID' : 'DUE'
         });
         if (!invoice || !invoice.id) {
             return res.status(400).send({ success: false, message: "Failed to create invoice" });
@@ -348,15 +359,7 @@ exports.getMonthlyOrder = async (req, res) => {
 
 
 exports.ReturnSale = async (req, res) => {
-    const { data, invoiceId } = req.body;
-
-    if (!Array.isArray(data) || data.length === 0) {
-        return res.status(400).send({
-            success: false,
-            message: "Invalid or empty product update data",
-        });
-    }
-
+    const { data, invoiceId, total, returnamount } = req.body;
     if (!invoiceId) {
         return res.status(400).send({
             success: false,
@@ -368,6 +371,7 @@ exports.ReturnSale = async (req, res) => {
 
     try {
         transaction = await sequelize.transaction();
+
         for (const pro of data) {
             const product = await Product.findOne({ where: { id: pro?.product_id }, transaction });
 
@@ -383,20 +387,47 @@ exports.ReturnSale = async (req, res) => {
         }
 
         const InvoiceData = await Invoice.findOne({ where: { id: invoiceId }, transaction });
-        if (!InvoiceData) {
-            throw new Error("Invoice not found");
+        if (InvoiceData) {
+            if (total === 0) {
+                await Invoice.destroy({ where: { id: invoiceId }, transaction });
+                await SaleOrder.destroy({ where: { invoice_id: invoiceId }, transaction });
+                await Notification.destroy({ where: { invoiceId: invoiceId }, transaction });
+                const due = await Customer.findOne({ where: { id: InvoiceData?.userId }, transaction });
+                if (due) {
+                    const updatedDue = parseInt(due.balance) - parseInt(InvoiceData.paidamount);
+                    await Customer.update({ balance: updatedDue }, { where: { id: InvoiceData.userId }, transaction });
+                }
+            } else {
+                await db.invoice.update({
+                    total: total,
+                    previousdue: InvoiceData?.previousdue,
+                    paidamount: InvoiceData?.paidamount,
+                    due: InvoiceData?.due + returnamount
+                }, { where: { id: InvoiceData.id }, transaction });
+
+
+                for (const pro of data) {
+                    if (parseInt(pro?.qty) === 0) {
+                        await SaleOrder.destroy({ where: { id: pro?.id } })
+                    } else {
+                        await SaleOrder.update({
+                            price: pro?.price,
+                            discount: pro?.discount,
+                            sellprice: pro?.sellprice,
+                            qty: pro?.qty
+                        },
+                            { where: { invoice_id: invoiceId }, transaction });
+                    }
+                }
+
+                const due = await Customer.findOne({ where: { id: InvoiceData?.userId }, transaction });
+                if (due) {
+                    const updatedDue = parseInt(due.balance) + parseInt(returnamount);
+                    await Customer.update({ balance: updatedDue }, { where: { id: InvoiceData.userId }, transaction });
+                }
+            }
+
         }
-
-        const due = await Customer.findOne({ where: { id: InvoiceData?.userId }, transaction });
-        if (due) {
-            const updatedDue = (parseInt(due.balance) || 0) - parseInt(InvoiceData.paidamount);
-            await Customer.update({ balance: updatedDue }, { where: { id: InvoiceData.userId }, transaction });
-        }
-
-
-        await Invoice.destroy({ where: { id: invoiceId }, transaction });
-        await SaleOrder.destroy({ where: { invoice_id: invoiceId }, transaction });
-        await Notification.destroy({ where: { invoiceId: invoiceId }, transaction });
 
         await transaction.commit();
 
@@ -414,14 +445,9 @@ exports.ReturnSale = async (req, res) => {
 
 
 exports.ReturnPurchase = async (req, res) => {
-    const { data } = req.body;
+    const { data, userId, total } = req.body;
 
-    if (!Array.isArray(data) || data.length === 0) {
-        return res.status(400).send({
-            success: false,
-            message: "Invalid or empty product update data",
-        });
-    }
+
     let transaction;
 
     try {
@@ -438,6 +464,11 @@ exports.ReturnPurchase = async (req, res) => {
             } else {
                 console.log(`Product with ID ${pro?.id} not found`);
             }
+        }
+        const due = await Customer.findOne({ where: { id: userId }, transaction });
+        if (due) {
+            const updatedDue = parseInt(due.balance) + parseInt(total);
+            await Customer.update({ balance: updatedDue }, { where: { id: userId }, transaction });
         }
         await transaction.commit();
         res.status(200).send({

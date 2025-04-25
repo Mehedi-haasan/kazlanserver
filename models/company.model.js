@@ -26,6 +26,9 @@ module.exports = (sequelize, Sequelize) => {
         footertext: {
             type: Sequelize.STRING,
         },
+        shopcode: {
+            type: Sequelize.STRING,
+        }
     });
 
     return Company;

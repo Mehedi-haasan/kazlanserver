@@ -5,6 +5,11 @@ const Customer = db.customer;
 const Op = db.Sequelize.Op;
 const deletePhoto = require('./filedelete.controller')
 
+function getFormattedDate() {
+  const date = new Date();
+  const options = { day: 'numeric', month: 'long', year: 'numeric' };
+  return date.toLocaleDateString('en-EN', options);
+}
 
 exports.createProduct = async (req, res) => {
 
@@ -39,7 +44,11 @@ exports.createProduct = async (req, res) => {
       createdby: req.userId,
       creator: req.user,
       qty: req.body.qty,
+      qty_type: req.body.qty_type,
+      discount: req.body.discount,
+      discount_type: req.body.discount_type
     })
+
 
     res.status(200).send({
       success: true,
@@ -142,7 +151,7 @@ exports.SingleProductTran = async (req, res) => {
 };
 
 exports.searchProduct = async (req, res) => {
-  const searchTerm = req.params.product;
+  const searchTerm = req.params.name;
   try {
     let data = await Product.findAll({
       where: {
@@ -186,10 +195,29 @@ exports.SingleProduct = async (req, res) => {
 };
 
 exports.UpdateProduct = async (req, res) => {
-  const { allData, balance, userId } = req.body;
+  const { allData, balance, userId, total, pay, shop } = req.body;
 
 
   try {
+    const user = await Customer.findOne({ where: { id: userId } });
+
+    const invoice = await db.invoice.create({
+      date: getFormattedDate(),
+      compId: req?.compId,
+      shopname: shop,
+      createdby: req.userId,
+      creator: req?.user,
+      userId: userId,
+      total: total,
+      customername: user?.name,
+      previousdue: user?.balance,
+      paidamount: pay,
+      due: (total + user?.balance) - pay,
+      status: total <= pay ? 'PAID' : 'DUE'
+    });
+    if (!invoice || !invoice.id) {
+      return res.status(400).send({ success: false, message: "Failed to create invoice" });
+    }
 
     for (const pro of allData) {
       const product = await Product.findOne({
@@ -212,11 +240,11 @@ exports.UpdateProduct = async (req, res) => {
       }
     }
 
-    const user = await Customer.findOne({ where: { id: userId } });
+
 
     if (user) {
       await Customer.update(
-        { balance: user.balance + parseInt(balance) },
+        { balance: user.balance - parseInt(balance) },
         { where: { id: userId } }
       );
     }
