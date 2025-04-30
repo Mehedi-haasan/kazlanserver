@@ -29,6 +29,15 @@ module.exports = (sequelize, Sequelize) => {
         total: {
             type: Sequelize.INTEGER
         },
+        packing: {
+            type: Sequelize.INTEGER
+        },
+        delivery: {
+            type: Sequelize.INTEGER
+        },
+        lastdiscount: {
+            type: Sequelize.INTEGER
+        },
         previousdue: {
             type: Sequelize.INTEGER
         },

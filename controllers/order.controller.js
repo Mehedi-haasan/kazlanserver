@@ -217,9 +217,10 @@ const UserDueCreate = async (userId, amount) => {
 
 exports.CreateOrder = async (req, res) => {
 
-    const { shop, customername, orders, userId, amount, total, previousdue, paidamount, date } = req.body;
+    const { shop, customername, orders, userId, amount, total, previousdue, paidamount, date, packing, delivery, lastdiscount } = req.body;
 
     let transaction;
+
     try {
         transaction = await sequelize.transaction();
         const invoice = await Invoice.create({
@@ -230,6 +231,9 @@ exports.CreateOrder = async (req, res) => {
             creator: req?.user,
             userId: userId,
             total: total,
+            packing: packing,
+            delivery: delivery,
+            lastdiscount: lastdiscount,
             customername: customername,
             previousdue: previousdue,
             paidamount: paidamount,
@@ -357,90 +361,108 @@ exports.getMonthlyOrder = async (req, res) => {
     }
 };
 
+const updatedQty = async (data, transaction) => {
+    for (const pro of data) {
+        const product = await Product.findOne({ where: { id: pro?.product_id }, transaction });
+
+        if (product) {
+            const currentQty = parseInt(product.qty) || 0;
+            const returnQty = parseInt(pro?.qty) || 0;
+            const updatedQty = currentQty + returnQty;
+
+            await Product.update(
+                { qty: updatedQty },
+                { where: { id: product.id }, transaction }
+            );
+        } else {
+            throw new Error(`Product with ID ${pro?.product_id} not found`);
+        }
+    }
+};
+
+
+
+
+
 
 exports.ReturnSale = async (req, res) => {
-    const { data, invoiceId, total, returnamount } = req.body;
-    if (!invoiceId) {
-        return res.status(400).send({
-            success: false,
-            message: "Invoice ID is required",
-        });
-    }
+    const { data, invoiceId, total, returnamount, shopname, userId, customername, date } = req.body;
 
     let transaction;
-
     try {
         transaction = await sequelize.transaction();
 
-        for (const pro of data) {
-            const product = await Product.findOne({ where: { id: pro?.product_id }, transaction });
+        await updatedQty(data, transaction);
 
-            if (product) {
-                const currentQty = parseInt(product.qty) || 0;
-                const returnQty = parseInt(pro?.qty) || 0;
-                const updatedQty = currentQty + returnQty;
+        const invo = await Invoice.findOne({ where: { id: invoiceId }, transaction });
+        const due = await Customer.findOne({ where: { id: invo?.userId }, transaction });
 
-                await Product.update({ qty: updatedQty }, { where: { id: product.id }, transaction });
-            } else {
-                throw new Error(`Product with ID ${pro?.product_id} not found`);
-            }
+        if (due) {
+            const updatedDue = parseInt(due.balance) - parseInt(returnamount);
+            await Customer.update(
+                { balance: updatedDue },
+                { where: { id: invo?.userId }, transaction }
+            );
         }
 
-        const InvoiceData = await Invoice.findOne({ where: { id: invoiceId }, transaction });
-        if (InvoiceData) {
-            if (total === 0) {
-                await Invoice.destroy({ where: { id: invoiceId }, transaction });
-                await SaleOrder.destroy({ where: { invoice_id: invoiceId }, transaction });
-                await Notification.destroy({ where: { invoiceId: invoiceId }, transaction });
-                const due = await Customer.findOne({ where: { id: InvoiceData?.userId }, transaction });
-                if (due) {
-                    const updatedDue = parseInt(due.balance) - parseInt(InvoiceData.paidamount);
-                    await Customer.update({ balance: updatedDue }, { where: { id: InvoiceData.userId }, transaction });
-                }
-            } else {
-                await db.invoice.update({
-                    total: total,
-                    previousdue: InvoiceData?.previousdue,
-                    paidamount: InvoiceData?.paidamount,
-                    due: InvoiceData?.due + returnamount
-                }, { where: { id: InvoiceData.id }, transaction });
+        const invoice = await Invoice.create({
+            date: date,
+            compId: req?.compId,
+            shopname,
+            createdby: req.userId,
+            creator: req?.user,
+            userId,
+            total: 0,
+            packing: 0,
+            delivery: 0,
+            lastdiscount: 0,
+            customername,
+            previousdue: due?.balance,
+            paidamount: returnamount,
+            due: 0,
+            status: 'Return'
+        }, { transaction });
 
 
-                for (const pro of data) {
-                    if (parseInt(pro?.qty) === 0) {
-                        await SaleOrder.destroy({ where: { id: pro?.id } })
-                    } else {
-                        await SaleOrder.update({
-                            price: pro?.price,
-                            discount: pro?.discount,
-                            sellprice: pro?.sellprice,
-                            qty: pro?.qty
-                        },
-                            { where: { invoice_id: invoiceId }, transaction });
-                    }
-                }
+        console.log("Update");
+        let orders = [];
 
-                const due = await Customer.findOne({ where: { id: InvoiceData?.userId }, transaction });
-                if (due) {
-                    const updatedDue = parseInt(due.balance) + parseInt(returnamount);
-                    await Customer.update({ balance: updatedDue }, { where: { id: InvoiceData.userId }, transaction });
-                }
-            }
+        data?.map(v => (
+            orders.push({
+                active: true,
+                invoice_id: invoice.id,
+                compId: req?.compId,
+                createdby: req?.userId,
+                creator: req?.user,
+                product_id: v?.product_id,
+                username: v?.username,
+                userId: v?.userId,
+                name: v?.name,
+                shop: v?.shopname,
+                price: v?.price,
+                discount: v?.discount,
+                sellprice: (v?.price * v?.qty),
+                qty: v?.qty,
+                contact: v?.phone,
+                date: date
+            })
+        ));
 
-        }
-
+        console.log("Update 2");
+        await SaleOrder.bulkCreate(orders, { transaction });
+        console.log("Update 3");
         await transaction.commit();
-
         return res.status(200).send({
             success: true,
             message: "Product returned successfully",
         });
+
     } catch (error) {
-        await transaction.rollback();
-        console.error("Error in ReturnSale:", error);
+        if (transaction) await transaction.rollback();
         return res.status(500).send({ success: false, message: error.message });
     }
 };
+
 
 
 
@@ -482,3 +504,89 @@ exports.ReturnPurchase = async (req, res) => {
     }
 };
 
+
+
+
+// exports.ReturnSale = async (req, res) => {
+//     const { data, invoiceId, total, returnamount } = req.body;
+//     if (!invoiceId) {
+//         return res.status(400).send({
+//             success: false,
+//             message: "Invoice ID is required",
+//         });
+//     }
+
+//     let transaction;
+
+//     try {
+//         transaction = await sequelize.transaction();
+
+//         for (const pro of data) {
+//             const product = await Product.findOne({ where: { id: pro?.product_id }, transaction });
+
+//             if (product) {
+//                 const currentQty = parseInt(product.qty) || 0;
+//                 const returnQty = parseInt(pro?.qty) || 0;
+//                 const updatedQty = currentQty + returnQty;
+
+//                 await Product.update({ qty: updatedQty }, { where: { id: product.id }, transaction });
+//             } else {
+//                 throw new Error(`Product with ID ${pro?.product_id} not found`);
+//             }
+//         }
+
+//         const InvoiceData = await Invoice.findOne({ where: { id: invoiceId }, transaction });
+//         if (InvoiceData) {
+//             if (total === 0) {
+//                 await Invoice.destroy({ where: { id: invoiceId }, transaction });
+//                 await SaleOrder.destroy({ where: { invoice_id: invoiceId }, transaction });
+//                 await Notification.destroy({ where: { invoiceId: invoiceId }, transaction });
+//                 const due = await Customer.findOne({ where: { id: InvoiceData?.userId }, transaction });
+//                 if (due) {
+//                     const updatedDue = parseInt(due.balance) - parseInt(InvoiceData.paidamount);
+//                     await Customer.update({ balance: updatedDue }, { where: { id: InvoiceData.userId }, transaction });
+//                 }
+//             } else {
+//                 await db.invoice.update({
+//                     total: total,
+//                     previousdue: InvoiceData?.previousdue,
+//                     paidamount: InvoiceData?.paidamount,
+//                     due: InvoiceData?.due + returnamount
+//                 }, { where: { id: InvoiceData.id }, transaction });
+
+
+//                 for (const pro of data) {
+//                     if (parseInt(pro?.qty) === 0) {
+//                         await SaleOrder.destroy({ where: { id: pro?.id } })
+//                     } else {
+//                         await SaleOrder.update({
+//                             price: pro?.price,
+//                             discount: pro?.discount,
+//                             sellprice: pro?.sellprice,
+//                             qty: pro?.qty
+//                         },
+//                             { where: { invoice_id: invoiceId }, transaction });
+//                     }
+//                 }
+
+//                 const due = await Customer.findOne({ where: { id: InvoiceData?.userId }, transaction });
+//                 if (due) {
+//                     const updatedDue = parseInt(due.balance) + parseInt(returnamount);
+//                     await Customer.update({ balance: updatedDue }, { where: { id: InvoiceData.userId }, transaction });
+//                 }
+//             }
+
+//         }
+
+//         await transaction.commit();
+
+//         return res.status(200).send({
+//             success: true,
+//             message: "Product returned successfully",
+//         });
+//     } catch (error) {
+//         await transaction.rollback();
+//         console.error("Error in ReturnSale:", error);
+//         return res.status(500).send({ success: false, message: error.message });
+//     }
+// };
