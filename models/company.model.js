@@ -28,8 +28,11 @@ module.exports = (sequelize, Sequelize) => {
         },
         shopcode: {
             type: Sequelize.STRING,
+        },
+        creator: {
+            type: Sequelize.STRING
         }
-    });
+    }, { charset: 'utf8mb4', collate: 'utf8mb4_unicode_ci' });
 
     return Company;
 };

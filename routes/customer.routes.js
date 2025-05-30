@@ -14,19 +14,23 @@ module.exports = function (app) {
 
     app.get("/api/get/customers/:page/:pageSize", [jwt.verifyToken], controller.GetCustomerWithPage);
     app.get("/api/get/suppliers/:page/:pageSize", [jwt.verifyToken], controller.GetSupplierWithPage);
+
+    
     app.get("/api/get/customers/:stateId", [jwt.verifyToken], controller.GetCustomerWithState);
+    app.get("/api/get/suppliers/:stateId", [jwt.verifyToken], controller.GetSupplierWithState);
     
 
 
 
 
-
+ app.post("/api/update/customer/balance/:id", [jwt.verifyToken, jwt.isAdmin], controller.UpdateCustomerBalance);
 
 
 
 
     app.post("/api/update/customer/:id", [jwt.verifyToken, jwt.isAdmin], controller.UpdateCustomer);
     app.post("/api/update/supplier/:id", [jwt.verifyToken,jwt.isAdmin], controller.UpdateSupplier);
+    app.get("/api/get/customer/:id", [jwt.verifyToken,jwt.isAdmin], controller.GetSingleCustomer);
 
 
 
@@ -39,6 +43,6 @@ module.exports = function (app) {
     app.get("/api/get/customer/due/:userId", [jwt.verifyToken], controller.GetCustomerDue);
 
 
-    app.get("/api/get/payment/history/:id", [jwt.verifyToken], controller.PaymentHistory);
+    app.post("/api/get/payment/history/:id", [jwt.verifyToken], controller.PaymentHistory);
 
 };

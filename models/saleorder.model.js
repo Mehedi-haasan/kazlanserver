@@ -36,6 +36,9 @@ module.exports = (sequelize, Sequelize) => {
         discount: {
             type: Sequelize.INTEGER,
         },
+        discount_type: {
+            type: Sequelize.STRING,
+        },
         createdby: {
             type: Sequelize.INTEGER,
         },
@@ -54,26 +57,15 @@ module.exports = (sequelize, Sequelize) => {
         date: {
             type: Sequelize.STRING
         },
-    });
+        type: {
+            type: Sequelize.STRING
+        },
+        deliverydate: {
+            type: Sequelize.STRING
+        }
+    }, { charset: 'utf8mb4', collate: 'utf8mb4_unicode_ci' });
 
     return saleorder;
 };
 
 
-
-// CREATE TABLE saleorder (
-//     id INT AUTO_INCREMENT PRIMARY KEY,
-//     active BOOLEAN DEFAULT TRUE,
-//     invoice_id INT,
-//     product_id INT,
-//     username VARCHAR(255),
-//     userId INT,
-//     name VARCHAR(255),
-//     price INT,
-//     discount INT,
-//     discountType VARCHAR(255),
-//     sellprice INT,
-//     qty INT,
-//     contact VARCHAR(255),
-//     date VARCHAR(255)
-// );

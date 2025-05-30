@@ -1,5 +1,5 @@
 const db = require("../models");
-
+const { Op } = require("sequelize");
 
 exports.GetCustomerWithState = async (req, res) => {
     try {
@@ -9,6 +9,26 @@ exports.GetCustomerWithState = async (req, res) => {
                 compId: req.compId,
                 stateId: req.params.stateId,
                 usertype: "Customer"
+            }
+        })
+        res.status(200).send({
+            success: true,
+            items: data
+        })
+
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+}
+
+exports.GetSupplierWithState = async (req, res) => {
+    try {
+        let data = await db.customer.findAll({
+            limit: 20,
+            where: {
+                compId: req.compId,
+                stateId: req.params.stateId,
+                usertype: "Supplier"
             }
         })
         res.status(200).send({
@@ -34,9 +54,18 @@ exports.GetCustomerWithPage = async (req, res) => {
             },
             offset: offset
         })
+
+        let total = await db.customer.count({
+            where: {
+                compId: req.compId,
+                usertype: "Customer"
+            }
+        })
+
         res.status(200).send({
             success: true,
-            items: data
+            items: data,
+            count: total
         })
 
     } catch (error) {
@@ -97,9 +126,17 @@ exports.GetSupplierWithPage = async (req, res) => {
             },
             offset: offset
         })
+
+        let total = await db.customer.count({
+            where: {
+                compId: req.compId,
+                usertype: "Supplier"
+            }
+        })
         res.status(200).send({
             success: true,
-            items: data
+            items: data,
+            count: total
         })
 
     } catch (error) {
@@ -108,7 +145,7 @@ exports.GetSupplierWithPage = async (req, res) => {
 }
 
 exports.CreateCustomer = async (req, res) => {
-    const { name, phone, bankname, accountname, accountnumber, balance,
+    const { name, phone, bankname, accountname, accountnumber, balance, customertype,
         balance_type, address, email, stateId, usertype, image_url } = req.body;
     try {
         let data = await db.customer.create({
@@ -126,7 +163,8 @@ exports.CreateCustomer = async (req, res) => {
             usertype: usertype,
             cretedby: req.userId,
             creator: req.user,
-            image_url: image_url
+            image_url: image_url,
+            customertype: customertype
         })
         res.status(200).send({
             success: true,
@@ -173,7 +211,7 @@ exports.UpdateCustomer = async (req, res) => {
             },
             {
                 where: {
-                    id: id  // ✅ Fixed here
+                    id: id
                 }
             }
         );
@@ -191,6 +229,29 @@ exports.UpdateCustomer = async (req, res) => {
     }
 };
 
+exports.UpdateCustomerBalance = async (req, res) => {
+
+    try {
+        let customer = await db.customer.findOne({
+            where: {
+                id: req?.params?.id
+            }
+        });
+
+        await db.customer.update({ balance: parseInt(customer?.balance) + parseInt(req.body.paid) }, { where: { id: req?.params?.id } });
+
+        res.status(200).send({
+            success: true,
+            message: "Updated Successfully",
+        });
+
+    } catch (error) {
+        res.status(500).send({
+            success: false,
+            message: error.message,
+        });
+    }
+};
 
 exports.UpdateSupplier = async (req, res) => {
     const { id } = req.params;
@@ -242,6 +303,24 @@ exports.UpdateSupplier = async (req, res) => {
     }
 };
 
+exports.GetSingleCustomer = async (req, res) => {
+    try {
+        let data = await db.customer.findOne({
+            where: {
+                id: req.params.id,
+            }
+        })
+
+        res.status(200).send({
+            success: true,
+            items: data
+        })
+
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+}
+
 exports.GetCustomerDue = async (req, res) => {
     try {
         let data = await db.customer.findOne({ where: { id: req.params.userId, } })
@@ -258,21 +337,34 @@ exports.GetCustomerDue = async (req, res) => {
 
 
 exports.PaymentHistory = async (req, res) => {
-
     try {
-        let data = await db.customer.findOne({ where: { id: req.params.id } });
-        let history = await db.invoice.findAll({
+        const { fromDate, toDate } = req.body;
+
+        const from = new Date(fromDate);
+        const to = new Date(toDate);
+
+        // Ensure full day is included for the end date
+        to.setHours(23, 59, 59, 999);
+
+        const data = await db.customer.findOne({ where: { id: req.params.id } });
+
+        const history = await db.invoice.findAll({
             where: {
-                userId: req.params.id
-            }
-        })
+                userId: req.params.id,
+                createdAt: {
+                    [Op.between]: [from, to]
+                }
+            },
+            order: [['createdAt', 'DESC']]
+        });
+
         res.status(200).send({
             success: true,
             items: data,
             history: history
-        })
+        });
 
     } catch (error) {
         res.status(500).send({ success: false, message: error.message });
     }
-}
+};

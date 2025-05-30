@@ -29,6 +29,7 @@ require('./routes/imageupload.routes')(app);
 require('./routes/payment.routes')(app);
 require('./routes/message.routes')(app);
 require('./routes/order.routes')(app);
+require('./routes/dailysalse.routes')(app);
 require('./routes/state.routes')(app);
 require('./routes/category.routes')(app);
 require('./routes/brand.routes')(app);
@@ -51,32 +52,34 @@ const initStates = async () => {
     });
     await db.category.create({
         name: "Book",
+        active:true,
         image_url: "https://cdn-icons-png.flaticon.com/128/149/149071.png",
         compId: 1,
         createdby: 1,
-        creator: "",
+        creator: "Mahfuzur Rahman",
     });
     await db.brand.create({
         name: "Matadoor",
+        active:true,
         compId: 1,
         image_url: "https://cdn-icons-png.flaticon.com/128/149/149071.png",
         createdby: 1,
-        creator: "",
+        creator: "Mahfuzur Rahman",
     });
     await db.user.create({
         name: "Mahfuzur Rahman",
-        username: "1234567890",
-        whatsapp: "1234567890",
+        username: "01782205566",
+        whatsapp: "01782205566",
         address: "Dhaka Uttara",
         bankname: "City Bank",
         accountname: "KazlandBrother",
-        accountnumber: "1234567890",
+        accountnumber: "01782205566",
         email: "kazalandbrother@gmail.com",
         stateId: 1,
         compId: 1,
         usertype: "Wholesaler",
         cretedby: 1,
-        creator: "",
+        creator: "Mahfuzur Rahman",
         password: bcrypt.hashSync("1234560", 8),
         image_url: "https://cdn-icons-png.flaticon.com/128/2202/2202112.png",
     })
@@ -91,9 +94,9 @@ const initStates = async () => {
         address: "Random",
         email: "randomcustomer@gmail.com",
         stateId: 1,
-        usertype: "Retailer",
+        usertype: "Customer",
         cretedby: 1,
-        creator: "",
+        creator: "Mahfuzur Rahman",
         image_url: "https://cdn-icons-png.flaticon.com/128/2202/2202112.png",
     })
     await db.role.create({
@@ -111,7 +114,9 @@ const initStates = async () => {
         email: "kazalandbrother@gmail.com",
         phone: "1234567890",
         address: "Madaripur",
+        shopcode:"KB",
         footertext: "Copyright© Kazlandbrothers",
+        creator: "Mahfuzur Rahman"
     })
 }
 

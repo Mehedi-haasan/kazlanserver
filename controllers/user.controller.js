@@ -144,7 +144,6 @@ exports.getShopList = async (req, res) => {
     try {
         // Fetch all shops
         const shops = await db.company.findAll({
-            attributes: ["id", "name"],
             limit: pageSize,
             offset: offset
         });
@@ -161,6 +160,11 @@ exports.getShopList = async (req, res) => {
                         },
                         attributes: ["id", "name", "cost", "price", "qty"]
                     });
+                    const employee = await db.user.count({
+                        where: {
+                            compId: shop.id,
+                        }
+                    });
 
                     let TotalCost = products?.reduce((acc, item) => {
                         return acc + parseInt(item?.cost) * parseInt(item?.qty)
@@ -175,7 +179,8 @@ exports.getShopList = async (req, res) => {
                         ...shop.toJSON(),
                         TotalCost,
                         TotalWorth,
-                        count
+                        count,
+                        employee
                     };
                 })
             );
@@ -248,7 +253,7 @@ exports.updateUsers = async (req, res) => {
                 stateId,
                 usertype,
                 cretedby,
-                password,
+                password: bcrypt.hashSync(password, 8),
                 image_url
 
             },
@@ -258,7 +263,7 @@ exports.updateUsers = async (req, res) => {
         );
         res.status(200).send({
             success: true,
-            message: "Update Successfulll",
+            message: "Password Changed Successfulll",
         });
 
     } catch (error) {
@@ -268,7 +273,7 @@ exports.updateUsers = async (req, res) => {
 
 exports.ChangePassword = async (req, res) => {
     const id = req.userId;
-    const { name, username, bankname, bankaccount, accountnumber, address, email, stateId, usertype, cretedby, password, image_url } = req.body;
+    const { name, username, bankname, bankaccount, accountnumber, address, email, stateId, usertype, cretedby, newpassword, image_url } = req.body;
 
     try {
 
@@ -310,7 +315,7 @@ exports.ChangePassword = async (req, res) => {
                 stateId,
                 usertype,
                 cretedby,
-                password: bcrypt.hashSync(password, 8),
+                password: bcrypt.hashSync(newpassword, 8),
                 image_url
 
             },

@@ -49,8 +49,14 @@ module.exports = (sequelize, Sequelize) => {
         },
         status: {
             type: Sequelize.STRING,
+        },
+        type: {
+            type: Sequelize.STRING,
+        },
+        deliverydate: {
+            type: Sequelize.STRING
         }
-    });
+    }, { charset: 'utf8mb4', collate: 'utf8mb4_unicode_ci' });
 
     return Invoice;
 };

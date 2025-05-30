@@ -22,6 +22,7 @@ exports.CreateInfo = async (req, res) => {
             address,
             shopcode,
             footertext,
+            creator:req?.creator
         });
 
         return res.status(201).send({
@@ -42,7 +43,7 @@ exports.CreateInfo = async (req, res) => {
 
 
 exports.updateInfo = async (req, res) => {
-    const { id, userId, name, description, email, phone, address, image_url, update_url,shopcode, footertext } = req.body;
+    const { id, userId, name, description, email, phone, address, image_url, update_url, shopcode, footertext } = req.body;
 
     try {
         const [updated] = await Company.update({
@@ -54,7 +55,8 @@ exports.updateInfo = async (req, res) => {
             phone,
             address,
             shopcode,
-            footertext
+            footertext,
+            creator:req?.creator
         },
             {
                 where: {

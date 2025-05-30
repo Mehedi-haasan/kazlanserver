@@ -23,15 +23,9 @@ module.exports = (sequelize, Sequelize) => {
         image_url: {
             type: Sequelize.STRING
         }
-    });
+    }, { charset: 'utf8mb4', collate: 'utf8mb4_unicode_ci' });
 
     return Brand;
 };
 
 
-// CREATE TABLE product_category (
-//     id INT AUTO_INCREMENT PRIMARY KEY,
-//     active BOOLEAN,
-//     name VARCHAR(255),
-//     image_url VARCHAR(255)
-// );

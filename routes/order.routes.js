@@ -9,19 +9,12 @@ module.exports = function (app) {
         next();
     })
 
-    app.get('/api/get/order', jwt.verifyToken, controller.getAllOrder);
-    app.get('/api/get/order/:id', jwt.verifyToken, controller.getOrder);
 
-
-    app.get('/api/get/order/daily/salse', jwt.verifyToken, controller.getDailySalse);
-    app.get('/api/get/user/order/monthly', jwt.verifyToken, controller.getMonthlyOrder);
-    
     app.post('/api/post/order', jwt.verifyToken, controller.CreateOrder);
- 
-    app.get('/api/get/order/today', jwt.verifyToken, controller.getTodatOrder);
-    app.get('/api/get/user/recent/order/:page/:ageSize', jwt.verifyToken, controller.RecentInvoice);
+    app.post('/api/return/sale', jwt.verifyToken, controller.ReturnOrder)
 
 
-    app.post('/api/return/sale', jwt.verifyToken, controller.ReturnSale)
+    app.post("/api/purchase/product", [jwt.verifyToken, jwt.isAdmin], controller.PurchaseProduct);
     app.post('/api/return/purchase', jwt.verifyToken, controller.ReturnPurchase)
+
 }    

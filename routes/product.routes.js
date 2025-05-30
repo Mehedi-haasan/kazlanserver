@@ -18,8 +18,6 @@ module.exports = function (app) {
 
     app.get("/api/get/single/product/tran/:id", [Jwt.verifyToken, Jwt.isAdmin], controller.SingleProductTran);
 
-    app.post("/api/update/product", [Jwt.verifyToken, Jwt.isAdmin], controller.UpdateProduct);
-
     app.get("/api/get/product/templete/:page/:pageSize/:brandId/:catId/:compId", Jwt.verifyToken, controller.getProductTemplete);
 
     app.get("/api/get/product/search/:id", controller.SingleProduct);

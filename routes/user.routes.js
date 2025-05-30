@@ -17,7 +17,7 @@ module.exports = function (app) {
 
     app.get("/api/get/single/users", [jwt.verifyToken], controller.getSingleUsers);
     app.patch("/api/update/single/users", [jwt.verifyToken], controller.updateUsers);
-    app.patch("/api/update/user/password", [jwt.verifyToken], controller.updateUsers);
+    app.patch("/api/update/user/password", [jwt.verifyToken], controller.ChangePassword);
     app.get("/api/get/shop", [jwt.verifyToken], controller.getShop);
     app.get("/api/get/shop/list/with/info/:page/:pageSize", [jwt.verifyToken, jwt.isSuperAdmin], controller.getShopList);
 };

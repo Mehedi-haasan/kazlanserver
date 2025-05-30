@@ -1,7 +1,7 @@
 const Jwt = require("../middleware/authentication");
 const upload = require('../multer/Upload')
-// const BaseUrl = "https://portal.kazalandbrothers.xyz";
-const BaseUrl = "http://localhost:8050";
+const BaseUrl = "https://portal.kazalandbrothers.xyz";
+// const BaseUrl = "http://localhost:8050";
 
 
 module.exports = function (app) {

@@ -103,7 +103,7 @@ exports.CreateCategory = async (req, res) => {
 
         res.status(200).send({
             success: true,
-            message: "Create Category Successfully"
+            message: "Category Created Successfully"
         })
 
     } catch (error) {
@@ -142,7 +142,7 @@ exports.updateCategory = async (req, res) => {
         }
         res.status(200).send({
             success: true,
-            message: `Updated successfully`,
+            message: `Category Updated successfully`,
         });
 
     } catch (error) {
@@ -183,7 +183,7 @@ exports.DeleteCategory = async (req, res) => {
         deletePhoto(url)
         res.status(200).send({
             success: true,
-            message: "Category Delete Successfully"
+            message: "Category Deleted Successfully"
         })
 
     } catch (error) {

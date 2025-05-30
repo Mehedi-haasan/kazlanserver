@@ -88,7 +88,7 @@ exports.CreateBrand = async (req, res) => {
 
         res.status(200).send({
             success: true,
-            message: "Create Brand Successfully"
+            message: "Brand Created Successfully"
         })
 
     } catch (error) {
@@ -124,7 +124,7 @@ exports.updateBrand = async (req, res) => {
         deletePhoto(url)
         res.status(200).send({
             success: true,
-            message: `Updated successfully`,
+            message: `Brand Updated successfully`,
         });
 
     } catch (error) {

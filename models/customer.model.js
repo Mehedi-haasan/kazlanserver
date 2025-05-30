@@ -38,6 +38,9 @@ module.exports = (sequelize, Sequelize) => {
         usertype: {
             type: Sequelize.STRING
         },
+        customertype: {
+            type: Sequelize.STRING
+        },
         balance_type: {
             type: Sequelize.STRING
         },
@@ -51,7 +54,7 @@ module.exports = (sequelize, Sequelize) => {
             type: Sequelize.STRING,
         },
 
-    });
+    }, { charset: 'utf8mb4', collate: 'utf8mb4_unicode_ci' });
 
     return Customer;
 };

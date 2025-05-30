@@ -52,7 +52,7 @@ exports.createProduct = async (req, res) => {
 
     res.status(200).send({
       success: true,
-      message: "Product Create Successfully"
+      message: "Item Created Successfully"
     })
 
   } catch (error) {
@@ -112,7 +112,7 @@ exports.updateSingleProduct = async (req, res) => {
 
     res.status(200).send({
       success: true,
-      message: `Updated successfully`,
+      message: `Item Updated successfully`,
     });
 
   } catch (error) {
@@ -157,7 +157,11 @@ exports.searchProduct = async (req, res) => {
       where: {
         name: { [Op.like]: `%${searchTerm}%` },
         compId: req?.compId
-      }
+      },
+      include: [
+        { model: db.brand },
+        { model: db.category }
+      ]
     });
 
     res.status(200).send({
@@ -194,70 +198,6 @@ exports.SingleProduct = async (req, res) => {
   }
 };
 
-exports.UpdateProduct = async (req, res) => {
-  const { allData, balance, userId, total, pay, shop } = req.body;
-
-
-  try {
-    const user = await Customer.findOne({ where: { id: userId } });
-
-    const invoice = await db.invoice.create({
-      date: getFormattedDate(),
-      compId: req?.compId,
-      shopname: shop,
-      createdby: req.userId,
-      creator: req?.user,
-      userId: userId,
-      total: total,
-      customername: user?.name,
-      previousdue: user?.balance,
-      paidamount: pay,
-      due: (total + user?.balance) - pay,
-      status: total <= pay ? 'PAID' : 'DUE'
-    });
-    if (!invoice || !invoice.id) {
-      return res.status(400).send({ success: false, message: "Failed to create invoice" });
-    }
-
-    for (const pro of allData) {
-      const product = await Product.findOne({
-        where: { id: pro?.id },
-      });
-
-      if (product) {
-        await Product.update(
-          {
-            qty: parseInt(product.qty) + parseInt(pro?.qty),
-          },
-          {
-            where: {
-              id: product?.id,
-            },
-          }
-        );
-      } else {
-        console.log(`Product with ID ${pro?.product_id} not found`);
-      }
-    }
-
-
-
-    if (user) {
-      await Customer.update(
-        { balance: user.balance - parseInt(balance) },
-        { where: { id: userId } }
-      );
-    }
-
-    res.status(200).send({
-      success: true,
-      message: "Product updated successfully",
-    });
-  } catch (error) {
-    res.status(500).send({ success: false, message: error.message });
-  }
-};
-
 exports.DeleteProduct = async (req, res) => {
   try {
     const { id, url } = req.body;
@@ -280,7 +220,7 @@ exports.DeleteProduct = async (req, res) => {
     deletePhoto(url)
     res.status(200).send({
       success: true,
-      message: "Brand deleted successfully.",
+      message: "Item deleted successfully",
     });
 
   } catch (error) {
