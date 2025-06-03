@@ -44,6 +44,12 @@ module.exports = (sequelize, Sequelize) => {
         creator: {
             type: Sequelize.STRING
         },
+        year: {
+            type: Sequelize.STRING
+        },
+        edition: {
+            type: Sequelize.STRING
+        },
         qty: {
             type: Sequelize.INTEGER
         },
