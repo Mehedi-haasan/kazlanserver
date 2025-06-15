@@ -37,14 +37,14 @@ require('./routes/notification.routes')(app);
 require('./routes/customer.routes')(app);
 
 
-// db.sequelize.sync({ force: true }).then(async () => {
-//     await initStates();
-//     // await initUserRoles();
-//     // await initCarousel();
-//     // await initCategories();
-//     // await initProductAttributes();
-//     // await initProductAttributeValues();
-// });
+db.sequelize.sync({ force: true }).then(async () => {
+    await initStates();
+    // await initUserRoles();
+    // await initCarousel();
+    // await initCategories();
+    // await initProductAttributes();
+    // await initProductAttributeValues();
+});
 
 const initStates = async () => {
     await db.state.create({

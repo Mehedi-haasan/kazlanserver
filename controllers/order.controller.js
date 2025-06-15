@@ -16,8 +16,6 @@ exports.CreateOrder = async (req, res) => {
 
     let transaction;
 
-    console.log("Amount akfgsuydhj", amount);
-
     try {
         transaction = await sequelize.transaction();
         const invoice = await Invoice.create({

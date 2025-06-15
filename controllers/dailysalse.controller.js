@@ -49,7 +49,8 @@ exports.getOrder = async (req, res) => {
                 {
                     model: Product,
                     include: [
-                        { model: db.brand }
+                        { model: db.brand },
+                        { model: db.category }
                     ]
 
                 }
@@ -86,7 +87,7 @@ exports.getOrder = async (req, res) => {
             paidamount: invo?.paidamount,
             date: invo?.date
         };
-        
+
 
 
         res.status(200).send({
@@ -319,6 +320,36 @@ exports.getMonthlyOrder = async (req, res) => {
         res.status(200).send({
             success: true,
             items: dataPoints
+        });
+
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+};
+
+
+exports.OrderFromTo = async (req, res) => {
+    const { fromDate, toDate } = req.body;
+
+    const from = new Date(fromDate);
+    const to = new Date(toDate);
+    to.setHours(23, 59, 59, 999);
+
+    try {
+        const data = await Invoice.findAll({
+            where: {
+                compId: req?.compId,
+                createdAt: {
+                    [Op.between]: [from, to],
+                },
+            },
+            order: [['createdAt', 'DESC']],
+        });
+
+        res.status(200).send({
+            success: true,
+            compId:req?.compId,
+            items: data,
         });
 
     } catch (error) {

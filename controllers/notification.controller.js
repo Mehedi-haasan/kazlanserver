@@ -1,6 +1,7 @@
 const db = require("../models");
 const Notification = db.notification;
 const User = db.user;
+const Op = db.Sequelize.Op;
 
 
 
@@ -11,7 +12,9 @@ exports.getNotification = async (req, res) => {
             order: [['id', 'DESC']],
             where: {
                 isSeen: 'false',
-                compId: req?.compId
+                compId: {
+                    [Op.or]: [req?.compId, 0]
+                }
             }
         })
         res.status(200).send({
@@ -21,6 +24,25 @@ exports.getNotification = async (req, res) => {
 
     } catch (error) {
         res.status(500).send({ success: false, message: error.message });
+    }
+}
+
+exports.CreateAnnouncement = async (req, res) => {
+    try {
+        const { mgs,shop } = req.body;
+        await Notification.create({
+            isSeen: 'false',
+            status: mgs,
+            userId: 1,
+            shop: shop,
+            compId: 0,
+            invoiceId: 0,
+            createdby: req?.userId,
+            creator: req?.user
+        });
+
+    } catch (error) {
+
     }
 }
 

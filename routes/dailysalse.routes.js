@@ -20,5 +20,6 @@ module.exports = function (app) {
  
     app.get('/api/get/user/recent/order/:page/:ageSize', jwt.verifyToken, controller.RecentInvoice);
     app.post('/api/get/user/recent/purchase/:page/:pageSize', jwt.verifyToken, controller.RecentPurchase);
+    app.post('/api/get/user/recent/order/from/to', jwt.verifyToken, controller.OrderFromTo);
 
 }    

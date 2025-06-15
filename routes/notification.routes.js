@@ -11,7 +11,7 @@ module.exports = function (app) {
     });
 
     app.get("/api/get/notification", jwt.verifyToken, controller.getNotification);
-    // app.get("/api/get/category", controller.getCategory);
+    app.post("/api/create/announcement", jwt.verifyToken, controller.CreateAnnouncement);
     app.patch("/api/update/notification", controller.updateNotification);
 
 
