@@ -18,7 +18,7 @@ exports.getCategory = async (req, res) => {
 
         const totalCount = await Category.count({ where: { compId: req.compId } });
 
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             items: data,
             count: totalCount
@@ -37,7 +37,7 @@ exports.getCategoryAll = async (req, res) => {
             attributes: ['id', 'name', 'image_url'],
             where: { compId: req.compId },
         })
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             items: data
         })
@@ -93,6 +93,19 @@ exports.getCategoryByProduct = async (req, res) => {
 
 exports.CreateCategory = async (req, res) => {
     try {
+        const data = await Category.findOne({
+            where: {
+                name: req.body.name,
+                compId: req.body.compId ? req.body.compId : req.compId
+            }
+        })
+
+        if (data) {
+            return res.status(200).send({
+                success: true,
+                message: "Category already exist"
+            })
+        }
         await Category.create({
             name: req.body.name,
             image_url: req.body.image_url,
@@ -101,7 +114,7 @@ exports.CreateCategory = async (req, res) => {
             creator: req.user
         });
 
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             message: "Category Created Successfully"
         })
@@ -140,7 +153,7 @@ exports.updateCategory = async (req, res) => {
         if (url) {
             deletePhoto(url)
         }
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             message: `Category Updated successfully`,
         });
@@ -161,7 +174,7 @@ exports.SearchCategory = async (req, res) => {
             }
         });
 
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             items: data,
         })
@@ -181,7 +194,7 @@ exports.DeleteCategory = async (req, res) => {
             }
         });
         deletePhoto(url)
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             message: "Category Deleted Successfully"
         })

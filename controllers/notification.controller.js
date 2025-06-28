@@ -17,19 +17,19 @@ exports.getNotification = async (req, res) => {
                 }
             }
         })
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             items: data
         })
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 }
 
 exports.CreateAnnouncement = async (req, res) => {
     try {
-        const { mgs,shop } = req.body;
+        const { mgs, shop } = req.body;
         await Notification.create({
             isSeen: 'false',
             status: mgs,
@@ -40,9 +40,12 @@ exports.CreateAnnouncement = async (req, res) => {
             createdby: req?.userId,
             creator: req?.user
         });
+        return res.status(200).send({
+            success: true,
+        })
 
     } catch (error) {
-
+        return res.status(500).send({ success: false, message: error.message });
     }
 }
 
@@ -65,13 +68,13 @@ exports.updateNotification = async (req, res) => {
             { where: { id: id } } // Condition to update
         );
 
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             message: `Updated successfully`,
         });
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 }
 

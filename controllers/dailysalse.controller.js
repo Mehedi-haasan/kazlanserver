@@ -26,13 +26,13 @@ exports.getAllOrder = async (req, res) => {
                 compId: req?.compId
             }
         })
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             items: data
         })
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 }
 
@@ -90,14 +90,14 @@ exports.getOrder = async (req, res) => {
 
 
 
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             items: data,
             user: userData,
         })
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 }
 
@@ -136,13 +136,13 @@ exports.getDailySalse = async (req, res) => {
         })
         const calcutatedData = await groupSalesByHour(data);
 
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             items: calcutatedData
         })
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 }
 
@@ -172,14 +172,14 @@ exports.getDailySalseReturnPurchase = async (req, res) => {
             raw: true
         });
 
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             returnsale: sale?.totalAmount || 0,
             purchasesale: purchase?.totalAmount || 0
         });
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 };
 
@@ -208,13 +208,13 @@ exports.getMonthlyOrder = async (req, res) => {
 
         dataPoints.sort((a, b) => a.x - b.x);
 
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             items: dataPoints
         });
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 };
 
@@ -235,7 +235,7 @@ exports.RecentInvoice = async (req, res) => {
         const totalInvoices = await Invoice.count({ where: { compId: req?.compId } });
         const totalPages = Math.ceil(totalInvoices / pageSize);
 
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             currentPage: page,
             totalPages: totalPages,
@@ -244,7 +244,7 @@ exports.RecentInvoice = async (req, res) => {
         });
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 };
 
@@ -265,7 +265,7 @@ exports.RecentPurchase = async (req, res) => {
         const totalInvoices = await Invoice.count({ where: { compId: req?.compId, type: type } });
         const totalPages = Math.ceil(totalInvoices / pageSize);
 
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             currentPage: page,
             totalPages: totalPages,
@@ -274,7 +274,7 @@ exports.RecentPurchase = async (req, res) => {
         });
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 };
 
@@ -317,13 +317,13 @@ exports.getMonthlyOrder = async (req, res) => {
 
         dataPoints.sort((a, b) => a.x - b.x);
 
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             items: dataPoints
         });
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 };
 
@@ -346,14 +346,14 @@ exports.OrderFromTo = async (req, res) => {
             order: [['createdAt', 'DESC']],
         });
 
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
-            compId:req?.compId,
+            compId: req?.compId,
             items: data,
         });
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 };
 

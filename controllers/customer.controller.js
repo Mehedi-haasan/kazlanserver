@@ -1,6 +1,12 @@
 const db = require("../models");
 const { Op } = require("sequelize");
 
+function getFormattedDate() {
+    const date = new Date();
+    const options = { day: 'numeric', month: 'long', year: 'numeric' };
+    return date.toLocaleDateString('en-EN', options);
+}
+
 exports.GetCustomerWithState = async (req, res) => {
     try {
         let data = await db.customer.findAll({
@@ -11,13 +17,13 @@ exports.GetCustomerWithState = async (req, res) => {
                 usertype: "Customer"
             }
         })
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             items: data
         })
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 }
 
@@ -31,13 +37,13 @@ exports.GetSupplierWithState = async (req, res) => {
                 usertype: "Supplier"
             }
         })
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             items: data
         })
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 }
 
@@ -52,7 +58,10 @@ exports.GetCustomerWithPage = async (req, res) => {
                 compId: req.compId,
                 usertype: "Customer"
             },
-            offset: offset
+            offset: offset,
+            include: [
+                { model: db.state }
+            ]
         })
 
         let total = await db.customer.count({
@@ -62,14 +71,14 @@ exports.GetCustomerWithPage = async (req, res) => {
             }
         })
 
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             items: data,
             count: total
         })
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 }
 
@@ -85,13 +94,13 @@ exports.GetRetailerCustomer = async (req, res) => {
             },
             offset: offset
         })
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             items: data
         })
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 }
 
@@ -103,13 +112,13 @@ exports.RetailerCustomer = async (req, res) => {
                 compId: req.compId,
             }
         })
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             items: data
         })
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 }
 
@@ -124,7 +133,11 @@ exports.GetSupplierWithPage = async (req, res) => {
                 compId: req.compId,
                 usertype: "Supplier"
             },
-            offset: offset
+            offset: offset,
+            include: [
+                { model: db.state }
+            ]
+
         })
 
         let total = await db.customer.count({
@@ -133,14 +146,14 @@ exports.GetSupplierWithPage = async (req, res) => {
                 usertype: "Supplier"
             }
         })
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             items: data,
             count: total
         })
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 }
 
@@ -148,6 +161,21 @@ exports.CreateCustomer = async (req, res) => {
     const { name, phone, bankname, accountname, accountnumber, balance, customertype,
         balance_type, address, email, stateId, usertype, image_url } = req.body;
     try {
+        const existcustomer = await db.customer.findOne({
+            where: {
+                name: req.body.name,
+                compId: req.body.compId ? req.body.compId : req.compId,
+                usertype: usertype,
+            }
+        })
+
+        if (existcustomer) {
+            return res.status(400).send({
+                success: false,
+                message: `${usertype === "Supplier" ? "Supplier already exists" : "Customer already exists"}`
+            });
+        }
+
         let data = await db.customer.create({
             name: name,
             phone: phone,
@@ -166,14 +194,14 @@ exports.CreateCustomer = async (req, res) => {
             image_url: image_url,
             customertype: customertype
         })
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             message: "Create Successfully",
             items: data
         })
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 }
 
@@ -216,13 +244,13 @@ exports.UpdateCustomer = async (req, res) => {
             }
         );
 
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             message: "Updated Successfully",
         });
 
     } catch (error) {
-        res.status(500).send({
+        return res.status(500).send({
             success: false,
             message: error.message,
         });
@@ -237,16 +265,48 @@ exports.UpdateCustomerBalance = async (req, res) => {
                 id: req?.params?.id
             }
         });
+        if (!customer) {
+            return res.status(200).send({
+                success: true,
+                message: "Customer not found",
+            });
+        }
+        const invoice = await db.invoice.create({
+            date: getFormattedDate(),
+            compId: req?.compId,
+            shopname: req?.body?.shop,
+            createdby: req.userId,
+            creator: req?.user,
+            userId: req?.params?.id,
+            paymentmethod: req.body?.paymentmethod,
+            total: 0,
+            packing: 0,
+            delivery: 0,
+            lastdiscount: 0,
+            customername: customer?.name,
+            previousdue: customer?.balance,
+            paidamount: parseInt(req.body.paid),
+            due: 0,
+            status: "Paid",
+            type: "Purchase items",
+            deliverydate: getFormattedDate()
+        });
 
-        await db.customer.update({ balance: parseInt(customer?.balance) + parseInt(req.body.paid) }, { where: { id: req?.params?.id } });
+        if (req?.params?.type === "1") {
+            await db.customer.update({ balance: parseInt(customer?.balance) + parseInt(req.body.paid) }, { where: { id: req?.params?.id } });
+        } else if (req?.params?.type === "2") {
+            await db.customer.update({ balance: parseInt(customer?.balance) - parseInt(req.body.paid) }, { where: { id: req?.params?.id } });
+        }
 
-        res.status(200).send({
+
+        return res.status(200).send({
             success: true,
             message: "Updated Successfully",
+            customertype: customer?.customertype
         });
 
     } catch (error) {
-        res.status(500).send({
+        return res.status(500).send({
             success: false,
             message: error.message,
         });
@@ -290,13 +350,13 @@ exports.UpdateSupplier = async (req, res) => {
         }
         );
 
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             message: "Updated Successfully",
         });
 
     } catch (error) {
-        res.status(500).send({
+        return res.status(500).send({
             success: false,
             message: error.message,
         });
@@ -311,27 +371,27 @@ exports.GetSingleCustomer = async (req, res) => {
             }
         })
 
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             items: data
         })
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 }
 
 exports.GetCustomerDue = async (req, res) => {
     try {
         let data = await db.customer.findOne({ where: { id: req.params.userId, } })
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             balance: data?.balance,
             phone: data?.phone
         })
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 }
 
@@ -358,13 +418,13 @@ exports.PaymentHistory = async (req, res) => {
             order: [['createdAt', 'DESC']]
         });
 
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             items: data,
             history: history
         });
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 };

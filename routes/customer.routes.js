@@ -23,7 +23,7 @@ module.exports = function (app) {
 
 
 
- app.post("/api/update/customer/balance/:id", [jwt.verifyToken, jwt.isAdmin], controller.UpdateCustomerBalance);
+    app.post("/api/update/customer/balance/:id/:type", [jwt.verifyToken, jwt.isAdmin], controller.UpdateCustomerBalance);
 
 
 

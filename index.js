@@ -38,7 +38,7 @@ require('./routes/customer.routes')(app);
 
 
 db.sequelize.sync({ force: true }).then(async () => {
-    await initStates();
+    // await initStates();
     // await initUserRoles();
     // await initCarousel();
     // await initCategories();

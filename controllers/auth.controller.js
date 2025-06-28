@@ -61,7 +61,7 @@ exports.singUp = async (req, res) => {
         await RoleSetup(req?.body?.rules, user?.id);
 
 
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             message: "Registration Successfull",
         })
@@ -118,7 +118,7 @@ exports.singIn = async (req, res) => {
             }
         })
 
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             message: "Login Successfully",
             name: data?.name,
@@ -126,7 +126,7 @@ exports.singIn = async (req, res) => {
             image: data?.image_url,
             logo: comp?.image_url,
             shopname: comp?.name,
-            shopcode:comp?.shopcode,
+            shopcode: comp?.shopcode,
             role: role?.name,
             id: data?.id,
             usertype: data?.usertype,
@@ -146,7 +146,7 @@ exports.ForgetPassword = async (req, res) => {
                 email: req.body.email
             }
         });
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             items: user,
         });
@@ -163,7 +163,7 @@ exports.OtpVarification = async (req, res) => {
                 email: req.body.email
             }
         });
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             items: user,
         });

@@ -10,7 +10,7 @@ exports.getBrandAll = async (req, res) => {
             where: { compId: req?.compId },
             order: [['createdAt', 'DESC']],
         })
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             items: data
         })
@@ -38,7 +38,7 @@ exports.getBrandWithPage = async (req, res) => {
             }
         });
 
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             items: data,
             count: totalCount
@@ -62,7 +62,7 @@ exports.searchBrand = async (req, res) => {
             }
         });
 
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             items: data,
         })
@@ -78,6 +78,20 @@ exports.searchBrand = async (req, res) => {
 exports.CreateBrand = async (req, res) => {
 
     try {
+        const data = await Brand.findOne({
+            where: {
+                name: req.body.name,
+                compId: req.body.compId ? req.body.compId : req.compId
+            }
+        })
+
+        if (data) {
+            return res.status(200).send({
+                success: true,
+                message: "Brand already exist"
+            })
+        }
+
         await Brand.create({
             name: req.body.name,
             image_url: req.body.image_url,
@@ -86,7 +100,7 @@ exports.CreateBrand = async (req, res) => {
             creator: req.user
         });
 
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             message: "Brand Created Successfully"
         })
@@ -122,7 +136,7 @@ exports.updateBrand = async (req, res) => {
             });
         }
         deletePhoto(url)
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             message: `Brand Updated successfully`,
         });
@@ -153,7 +167,7 @@ exports.DeleteBrand = async (req, res) => {
             });
         }
         deletePhoto(url)
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             message: "Brand deleted successfully.",
         });

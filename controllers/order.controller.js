@@ -11,8 +11,8 @@ const sequelize = db.sequelize;
 
 exports.CreateOrder = async (req, res) => {
 
-    const { shop, customername, orders, userId, amount, lastdiscount,
-        previousdue, paidamount, date, packing, delivery, total, deliverydate } = req.body;
+    const { shop, customername, orders, userId, amount, lastdiscount, pay_type,
+        previousdue, paidamount, date, packing, delivery, total, deliverydate, paymentmethod } = req.body;
 
     let transaction;
 
@@ -26,6 +26,7 @@ exports.CreateOrder = async (req, res) => {
             creator: req?.user,
             userId: userId,
             total: total,
+            paymentmethod: paymentmethod,
             packing: packing,
             delivery: delivery,
             lastdiscount: lastdiscount,
@@ -33,7 +34,7 @@ exports.CreateOrder = async (req, res) => {
             previousdue: previousdue,
             paidamount: paidamount,
             due: total - paidamount,
-            status: total <= paidamount ? 'PAID' : 'DUE',
+            status: pay_type,
             type: "Sale",
             deliverydate: deliverydate
         });
@@ -76,7 +77,7 @@ exports.CreateOrder = async (req, res) => {
         });
 
         await transaction.commit();
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             message: "Order Create Successfull",
             invoice: invoice?.id
@@ -92,7 +93,7 @@ exports.CreateOrder = async (req, res) => {
 
 exports.ReturnOrder = async (req, res) => {
 
-    const { shop, customername, orders, userId, lastdiscount, date, packing, delivery, total, deliverydate } = req.body;
+    const { shop, customername, orders, userId, lastdiscount, date, packing, delivery, total, deliverydate, pay_type, paymentmethod = "" } = req.body;
 
     let transaction;
 
@@ -108,6 +109,7 @@ exports.ReturnOrder = async (req, res) => {
             createdby: req.userId,
             creator: req?.user,
             userId: userId,
+            paymentmethod: paymentmethod,
             total: total,
             packing: packing,
             delivery: delivery,
@@ -116,7 +118,7 @@ exports.ReturnOrder = async (req, res) => {
             previousdue: user?.balance,
             paidamount: total,
             due: 0,
-            status: 'PAID',
+            status: pay_type,
             type: "Sale Return",
             deliverydate: deliverydate
         });
@@ -159,7 +161,7 @@ exports.ReturnOrder = async (req, res) => {
         });
 
         await transaction.commit();
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             message: "Order Return Successfull",
             invoice: invoice?.id
@@ -176,13 +178,13 @@ exports.ReturnOrder = async (req, res) => {
 
 exports.ReturnPurchase = async (req, res) => {
 
-    const { shop, customername, orders, userId, amount, lastdiscount,
-        previousdue, paidamount, date, packing, delivery, total, deliverydate } = req.body;
+    const { shop, customername, orders, userId, amount, lastdiscount, pay_type,
+        previousdue, paidamount, date, packing, delivery, total, deliverydate, paymentmethod = "" } = req.body;
 
     let transaction;
 
     try {
-        transaction = await sequelize.transaction();
+        // transaction = await sequelize.transaction();
         const user = await Customer.findOne({ where: { id: userId } });
 
         const invoice = await Invoice.create({
@@ -193,6 +195,7 @@ exports.ReturnPurchase = async (req, res) => {
             creator: req?.user,
             userId: userId,
             total: total,
+            paymentmethod: paymentmethod,
             packing: packing,
             delivery: delivery,
             lastdiscount: lastdiscount,
@@ -200,7 +203,7 @@ exports.ReturnPurchase = async (req, res) => {
             previousdue: previousdue,
             paidamount: total,
             due: 0,
-            status: 'PAID',
+            status: pay_type,
             type: "Return Purchase",
             deliverydate: deliverydate
         });
@@ -219,10 +222,15 @@ exports.ReturnPurchase = async (req, res) => {
 
         await SaleOrder.bulkCreate(updatedOrders);
 
+
+
         for (const pro of updatedOrders) {
             const product = await Product.findOne({ where: { id: pro?.product_id } });
             if (product) {
-                await Product.update({ qty: parseInt(product?.qty) - parseInt(pro?.qty) }, { where: { id: product?.id, }, });
+                await Product.update({
+                    qty: parseInt(product?.qty) - parseInt(pro?.qty)
+                },
+                    { where: { id: product?.id, }, });
             }
         }
 
@@ -242,8 +250,8 @@ exports.ReturnPurchase = async (req, res) => {
             creator: req?.user
         });
 
-        await transaction.commit();
-        res.status(200).send({
+        // await transaction.commit();
+        return res.status(200).send({
             success: true,
             message: "Return Purchased Successfull",
             invoice: invoice?.id
@@ -251,7 +259,7 @@ exports.ReturnPurchase = async (req, res) => {
         })
 
     } catch (error) {
-        if (transaction) await transaction.rollback();
+        // if (transaction) await transaction.rollback();
         res.status(500).send({ success: false, message: error.message });
     }
 }
@@ -260,7 +268,7 @@ exports.ReturnPurchase = async (req, res) => {
 
 exports.PurchaseProduct = async (req, res) => {
 
-    const { shop, customername, orders, userId, amount, lastdiscount,
+    const { shop, customername, orders, userId, amount, lastdiscount, pay_type, paymentmethod,
         previousdue, paidamount, date, packing, delivery, total, deliverydate, updatedata } = req.body;
 
     let transaction;
@@ -279,6 +287,7 @@ exports.PurchaseProduct = async (req, res) => {
             creator: req?.user,
             userId: userId,
             total: total,
+            paymentmethod: paymentmethod,
             packing: packing,
             delivery: delivery,
             lastdiscount: lastdiscount,
@@ -286,7 +295,7 @@ exports.PurchaseProduct = async (req, res) => {
             previousdue: user?.balance,
             paidamount: paidamount,
             due: total - paidamount,
-            status: total <= paidamount ? 'PAID' : 'DUE',
+            status: pay_type,
             type: "Purchase items",
             deliverydate: deliverydate
         });
@@ -302,18 +311,20 @@ exports.PurchaseProduct = async (req, res) => {
             createdby: req?.userId,
             creator: req?.user
         }));
-
         await SaleOrder.bulkCreate(updatedOrders);
 
         for (const pro of updatedata) {
-            const product = await Product.findOne({ where: { id: pro?.product_id } });
+            const product = await Product.findOne({
+                where: { id: pro?.id }
+            });
             if (product) {
                 await Product.update({ qty: parseInt(product?.qty) + parseInt(pro?.qty) }, { where: { id: product?.id, }, });
             }
         }
 
-
-        if (user) { await Customer.update({ balance: user.balance - amount }, { where: { id: userId } }); }
+        if (user) {
+            await Customer.update({ balance: user.balance - amount }, { where: { id: userId } });
+        }
 
 
 
@@ -329,7 +340,7 @@ exports.PurchaseProduct = async (req, res) => {
         });
 
         await transaction.commit();
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             message: "Purchased items Successfull",
             invoice: invoice?.id

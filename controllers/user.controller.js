@@ -15,13 +15,13 @@ exports.getUsers = async (req, res) => {
         });
 
 
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             items: data,
         });
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 };
 
@@ -52,13 +52,13 @@ exports.getUsersWithRole = async (req, res) => {
             })
         )
 
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             items: users,
         });
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 };
 
@@ -72,13 +72,13 @@ exports.getUsersbyState = async (req, res) => {
             attributes: ['id', 'name', 'username']
         });
 
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             items: data,
         });
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 };
 
@@ -92,13 +92,13 @@ exports.getCustomer = async (req, res) => {
             }
         });
 
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             items: data,
         });
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 };
 
@@ -112,13 +112,13 @@ exports.getSupplier = async (req, res) => {
             }
         });
 
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             items: data,
         });
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 };
 
@@ -127,13 +127,13 @@ exports.getShop = async (req, res) => {
     try {
         const data = await db.company.findAll({});
 
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             items: data,
         });
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 };
 
@@ -188,14 +188,14 @@ exports.getShopList = async (req, res) => {
 
         let count = await db.company.count({});
 
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             items: shopData,
             count: count
         });
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 };
 
@@ -213,13 +213,13 @@ exports.getSingleUsers = async (req, res) => {
                 }
             ]
         })
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             items: data,
         })
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 
 }
@@ -261,13 +261,13 @@ exports.updateUsers = async (req, res) => {
                 where: { id }
             }
         );
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             message: "Password Changed Successfulll",
         });
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 };
 
@@ -323,13 +323,13 @@ exports.ChangePassword = async (req, res) => {
                 where: { id }
             }
         );
-        res.status(200).send({
+        return res.status(200).send({
             success: true,
             message: "Update Successfulll",
         });
 
     } catch (error) {
-        res.status(500).send({ success: false, message: error.message });
+        return res.status(500).send({ success: false, message: error.message });
     }
 };
 

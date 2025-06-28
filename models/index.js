@@ -124,4 +124,14 @@ db.product.belongsTo(db.company, {
   onDelete: 'CASCADE',
 });
 
+
+db.state.hasMany(db.customer, {
+  foreignKey: "stateId",
+  onDelete: 'CASCADE',
+});
+db.customer.belongsTo(db.state, {
+  foreignKey: "stateId",
+  onDelete: 'CASCADE',
+});
+
 module.exports = db;

@@ -26,6 +26,8 @@ module.exports = function (app) {
 
     app.post("/api/delete/product", [Jwt.verifyToken, Jwt.isAdmin], controller.DeleteProduct);
 
-    app.get("/api/get/product/search/with/:name",Jwt.verifyToken, controller.searchProduct);
+    app.get("/api/get/product/search/with/:name", Jwt.verifyToken, controller.searchProduct);
+
+    app.get("/api/get/product/search/with/:edition/:category/:brand/:name", Jwt.verifyToken, controller.SecondSearchProduct);
 
 };

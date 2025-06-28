@@ -14,6 +14,9 @@ module.exports = (sequelize, Sequelize) => {
         categoryId: {
             type: Sequelize.INTEGER,
         },
+        editionId: {
+            type: Sequelize.INTEGER,
+        },
         supplier: {
             type: Sequelize.STRING,
         },

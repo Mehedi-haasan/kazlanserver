@@ -23,7 +23,7 @@ exports.createProduct = async (req, res) => {
     })
 
     if (data) {
-      res.status(200).send({
+      return res.status(200).send({
         success: true,
         message: "Product already exist"
       })
@@ -33,6 +33,7 @@ exports.createProduct = async (req, res) => {
       active: true,
       product_type: req.body.product_type,
       categoryId: req.body.categoryId,
+      editionId: req.body.editionId,
       compId: req.body.compId ? req.body.compId : req.compId,
       supplier: req.body.supplier,
       name: req.body.name,
@@ -40,8 +41,8 @@ exports.createProduct = async (req, res) => {
       image_url: req.body.image_url,
       cost: req.body.cost,
       price: req.body.price,
-      edition:req.body.edition,
-      year:req.body.year,
+      edition: req.body.edition,
+      year: req.body.year,
       brandId: req.body.brandId,
       createdby: req.userId,
       creator: req.user,
@@ -52,13 +53,13 @@ exports.createProduct = async (req, res) => {
     })
 
 
-    res.status(200).send({
+    return res.status(200).send({
       success: true,
       message: "Item Created Successfully"
     })
 
   } catch (error) {
-    res.status(500).send({ success: false, message: error.message });
+    return res.status(500).send({ success: false, message: error.message });
   }
 
 }
@@ -92,13 +93,13 @@ exports.getProductTemplete = async (req, res) => {
 
     const totalCount = await Product.count({ where: whereClause });
 
-    res.status(200).send({
+    return res.status(200).send({
       success: true,
       items: data,
       count: totalCount
     });
   } catch (error) {
-    res.status(500).send({ success: false, message: error.message });
+    return res.status(500).send({ success: false, message: error.message });
   }
 };
 
@@ -112,13 +113,13 @@ exports.updateSingleProduct = async (req, res) => {
       where: { id: id }
     });
 
-    res.status(200).send({
+    return res.status(200).send({
       success: true,
       message: `Item Updated successfully`,
     });
 
   } catch (error) {
-    res.status(500).send({ success: false, message: error.message });
+    return res.status(500).send({ success: false, message: error.message });
   }
 };
 
@@ -141,14 +142,14 @@ exports.SingleProductTran = async (req, res) => {
       limit: 12
     })
 
-    res.status(200).send({
+    return res.status(200).send({
       success: true,
       items: tran,
       product: product
     });
 
   } catch (error) {
-    res.status(500).send({ success: false, message: error.message });
+    return res.status(500).send({ success: false, message: error.message });
   }
 };
 
@@ -166,13 +167,85 @@ exports.searchProduct = async (req, res) => {
       ]
     });
 
-    res.status(200).send({
+    return res.status(200).send({
       success: true,
       items: data,
     });
 
   } catch (error) {
-    res.status(500).send({ success: false, message: error.message });
+    return res.status(500).send({ success: false, message: error.message });
+  }
+};
+
+
+exports.SecondSearchProduct = async (req, res) => {
+
+  let condition = {
+    compId: req?.compId,
+  };
+
+
+  const isValid = (value) => value !== undefined && value !== null && value !== "null" && value !== "undefined";
+
+  if (isValid(req.params.name)) {
+    condition.name = { [Op.like]: `%${req.params.name}%` };
+  }
+
+  if (isValid(req.params.brand)) {
+    condition.brandId = parseInt(req.params.brand);
+  }
+
+  if (isValid(req.params.edition)) {
+    condition.editionId = parseInt(req.params.edition);
+  }
+
+  if (isValid(req.params.category)) {
+    condition.categoryId = parseInt(req.params.category);
+  }
+
+
+
+  try {
+    let data = await Product.findAll({
+      where: condition,
+      include: [
+        { model: db.brand },
+        { model: db.category }
+      ]
+    });
+
+    return res.status(200).send({
+      success: true,
+      items: data,
+    });
+
+  } catch (error) {
+    return res.status(500).send({ success: false, message: error.message });
+  }
+};
+
+
+exports.SingleProduct = async (req, res) => {
+  try {
+    const data = await Product.findOne({
+      where: {
+        id: req.params?.id
+      },
+      include: [
+        { model: db.brand },
+        { model: db.category },
+        { model: db.customer },
+        { model: db.company }
+      ]
+    });
+
+    return res.status(200).send({
+      success: true,
+      items: data,
+    });
+
+  } catch (error) {
+    return res.status(500).send({ success: false, message: error.message });
   }
 };
 
@@ -190,13 +263,13 @@ exports.SingleProduct = async (req, res) => {
       ]
     });
 
-    res.status(200).send({
+    return res.status(200).send({
       success: true,
       items: data,
     });
 
   } catch (error) {
-    res.status(500).send({ success: false, message: error.message });
+    return res.status(500).send({ success: false, message: error.message });
   }
 };
 
@@ -220,12 +293,12 @@ exports.DeleteProduct = async (req, res) => {
       });
     }
     deletePhoto(url)
-    res.status(200).send({
+    return res.status(200).send({
       success: true,
       message: "Item deleted successfully",
     });
 
   } catch (error) {
-    res.status(500).send({ success: false, message: error.message });
+    return res.status(500).send({ success: false, message: error.message });
   }
 };
