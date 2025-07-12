@@ -56,6 +56,9 @@ module.exports = (sequelize, Sequelize) => {
         paymentmethod: {
             type: Sequelize.STRING
         },
+        methodname: {
+            type: Sequelize.STRING
+        },
         deliverydate: {
             type: Sequelize.STRING
         }

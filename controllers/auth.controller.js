@@ -39,6 +39,7 @@ exports.singUp = async (req, res) => {
 
         await User.create({
             name: name,
+            active: true,
             username: username,
             bankname: bankname,
             accountname: accountname,
@@ -80,6 +81,7 @@ exports.singIn = async (req, res) => {
                     { username: req.body.username },
                     { email: req.body.username },
                 ],
+                active: true
             },
         })
 

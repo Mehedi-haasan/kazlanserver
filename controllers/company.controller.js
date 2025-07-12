@@ -61,39 +61,19 @@ exports.CreateInfo = async (req, res) => {
 
 
 exports.updateInfo = async (req, res) => {
-    const { id, userId, name, description, email, phone, address, image_url, update_url, shopcode, footertext } = req.body;
+    const values = req.body;
 
     try {
-        const [updated] = await Company.update({
-            userId,
-            name,
-            description,
-            image_url,
-            email,
-            phone,
-            address,
-            shopcode,
-            footertext,
-            creator: req?.creator
-        },
-            {
-                where: {
-                    id: id
-                }
-            });
+        await Company.update(values, {
+            where: { id: req?.body?.id }
+        });
 
-        if (updated) {
-            deletePhoto(update_url)
-            return res.status(200).send({
-                success: true,
-                message: 'Company info updated successfully'
-            });
-        } else {
-            return res.status(404).send({
-                success: false,
-                message: 'Company not found'
-            });
-        }
+
+        return res.status(200).send({
+            success: true,
+            message: 'Company info updated successfully'
+        });
+
     } catch (error) {
         return res.status(500).send({
             success: false,

@@ -12,7 +12,7 @@ exports.getCategory = async (req, res) => {
     try {
         let data = await Category.findAll({
             limit: pageSize,
-            where: { compId: req.compId },
+            where: { compId: req.compId, active: true },
             offset: offset
         })
 
@@ -35,7 +35,7 @@ exports.getCategoryAll = async (req, res) => {
     try {
         let data = await Category.findAll({
             attributes: ['id', 'name', 'image_url'],
-            where: { compId: req.compId },
+            where: { compId: req.compId, active: true },
         })
         return res.status(200).send({
             success: true,
@@ -107,6 +107,7 @@ exports.CreateCategory = async (req, res) => {
             })
         }
         await Category.create({
+            active: true,
             name: req.body.name,
             image_url: req.body.image_url,
             createdby: req.userId,
@@ -129,7 +130,6 @@ exports.CreateCategory = async (req, res) => {
 exports.updateCategory = async (req, res) => {
     try {
         const { id, name, image_url, url } = req.body;
-        console.log(req.user)
 
         if (!id) {
             return res.status(400).send({
@@ -170,7 +170,8 @@ exports.SearchCategory = async (req, res) => {
         let data = await Category.findAll({
             where: {
                 name: { [Op.like]: `%${searchTerm}%` },
-                compId: req?.compId
+                compId: req?.compId,
+                active: true
             }
         });
 
@@ -186,14 +187,24 @@ exports.SearchCategory = async (req, res) => {
 
 
 exports.DeleteCategory = async (req, res) => {
-    const { id, url } = req.body;
+    const { id } = req.body;
     try {
-        await Category.destroy({
-            where: {
-                id: id
+        await Category.update(
+            {
+                active: false,
+                name: req.body.name,
+                image_url: req.body.image_url,
+                createdby: req.userId,
+                compId: req.compId,
+                creator: req.user
+            },
+            {
+                where: {
+                    id: id
+                }
             }
-        });
-        deletePhoto(url)
+        );
+        // deletePhoto(url)
         return res.status(200).send({
             success: true,
             message: "Category Deleted Successfully"

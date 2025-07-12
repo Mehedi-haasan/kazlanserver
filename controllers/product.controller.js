@@ -34,7 +34,7 @@ exports.createProduct = async (req, res) => {
       product_type: req.body.product_type,
       categoryId: req.body.categoryId,
       editionId: req.body.editionId,
-      compId: req.body.compId ? req.body.compId : req.compId,
+      compId: req.compId,
       supplier: req.body.supplier,
       name: req.body.name,
       description: req.body.description,
@@ -70,7 +70,7 @@ exports.getProductTemplete = async (req, res) => {
   const brandId = parseInt(req.params.brandId);
   const catId = parseInt(req.params.catId);
   const offset = (page - 1) * pageSize;
-  const compId = req?.params?.compId
+  const compId = req?.compId
 
   const whereClause = {};
   if (!isNaN(compId)) whereClause.compId = compId;

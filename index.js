@@ -37,14 +37,14 @@ require('./routes/notification.routes')(app);
 require('./routes/customer.routes')(app);
 
 
-db.sequelize.sync({ force: true }).then(async () => {
-    // await initStates();
-    // await initUserRoles();
-    // await initCarousel();
-    // await initCategories();
-    // await initProductAttributes();
-    // await initProductAttributeValues();
-});
+// db.sequelize.sync({ force: true }).then(async () => {
+//     await initStates();
+//     // await initUserRoles();
+//     // await initCarousel();
+//     // await initCategories();
+//     // await initProductAttributes();
+//     // await initProductAttributeValues();
+// });
 
 const initStates = async () => {
     await db.state.create({
@@ -52,7 +52,7 @@ const initStates = async () => {
     });
     await db.category.create({
         name: "Book",
-        active:true,
+        active: true,
         image_url: "https://cdn-icons-png.flaticon.com/128/149/149071.png",
         compId: 1,
         createdby: 1,
@@ -60,7 +60,7 @@ const initStates = async () => {
     });
     await db.brand.create({
         name: "Matadoor",
-        active:true,
+        active: true,
         compId: 1,
         image_url: "https://cdn-icons-png.flaticon.com/128/149/149071.png",
         createdby: 1,
@@ -68,6 +68,7 @@ const initStates = async () => {
     });
     await db.user.create({
         name: "Mahfuzur Rahman",
+        active: true,
         username: "01782205566",
         whatsapp: "01782205566",
         address: "Dhaka Uttara",
@@ -114,9 +115,69 @@ const initStates = async () => {
         email: "kazalandbrother@gmail.com",
         phone: "1234567890",
         address: "Madaripur",
-        shopcode:"KB",
+        shopcode: "KB",
         footertext: "Copyright© Kazlandbrothers",
         creator: "Mahfuzur Rahman"
+    })
+
+    await db.customer.create({
+        name: "Lecture Publication",
+        phone: "123456",
+        bankname: "City Bank",
+        accountname: "Lecture Publication",
+        accountnumber: "123456",
+        balance: 0,
+        balance_type: "To Pay",
+        address: "Madaripur",
+        email: "lecturepublication@gmail.com",
+        stateId: 1,
+        compId: 1,
+        usertype: "Supplier",
+        cretedby: 1,
+        creator: "Mahfuzur Rahman",
+        image_url: "",
+        customertype: "Party"
+    })
+    await db.customer.create({
+        name: "Mehedi hasan",
+        phone: "123456",
+        bankname: "City Bank",
+        accountname: "Mehedi hasan",
+        accountnumber: "123456",
+        balance: 0,
+        balance_type: "To Pay",
+        address: "Madaripur",
+        email: "hasanmehedi@gmail.com",
+        stateId: 1,
+        compId: 1,
+        usertype: "Customer",
+        cretedby: 1,
+        creator: "Mahfuzur Rahman",
+        image_url: "",
+        customertype: "Party"
+    })
+
+    await db.product.create({
+        active: true,
+        product_type: "Physical",
+        categoryId: 1,
+        editionId: 1,
+        compId: 1,
+        supplier: 1,
+        name: "Class 10 Physics",
+        description: "Class 10 Physics",
+        image_url: "",
+        cost: 160,
+        price: 180,
+        edition: "2025",
+        year: "2025",
+        brandId: 1,
+        createdby: 1,
+        creator: "Mahfuzur Rahman",
+        qty: 100,
+        qty_type: "Pcs",
+        discount: 0,
+        discount_type: "Percentage"
     })
 }
 

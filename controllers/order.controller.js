@@ -11,7 +11,7 @@ const sequelize = db.sequelize;
 
 exports.CreateOrder = async (req, res) => {
 
-    const { shop, customername, orders, userId, amount, lastdiscount, pay_type,
+    const { shop, customername, orders, userId, amount, lastdiscount, pay_type, methodname,
         previousdue, paidamount, date, packing, delivery, total, deliverydate, paymentmethod } = req.body;
 
     let transaction;
@@ -27,6 +27,7 @@ exports.CreateOrder = async (req, res) => {
             userId: userId,
             total: total,
             paymentmethod: paymentmethod,
+            methodname: methodname,
             packing: packing,
             delivery: delivery,
             lastdiscount: lastdiscount,
@@ -34,7 +35,7 @@ exports.CreateOrder = async (req, res) => {
             previousdue: previousdue,
             paidamount: paidamount,
             due: total - paidamount,
-            status: pay_type,
+            status: total > paidamount ? "Due" : "Paid",
             type: "Sale",
             deliverydate: deliverydate
         });
@@ -93,7 +94,8 @@ exports.CreateOrder = async (req, res) => {
 
 exports.ReturnOrder = async (req, res) => {
 
-    const { shop, customername, orders, userId, lastdiscount, date, packing, delivery, total, deliverydate, pay_type, paymentmethod = "" } = req.body;
+    const { shop, customername, orders, userId, lastdiscount, date, packing,
+        delivery, total, deliverydate, pay_type, paymentmethod, methodname } = req.body;
 
     let transaction;
 
@@ -110,6 +112,7 @@ exports.ReturnOrder = async (req, res) => {
             creator: req?.user,
             userId: userId,
             paymentmethod: paymentmethod,
+            methodname: methodname,
             total: total,
             packing: packing,
             delivery: delivery,
@@ -178,8 +181,8 @@ exports.ReturnOrder = async (req, res) => {
 
 exports.ReturnPurchase = async (req, res) => {
 
-    const { shop, customername, orders, userId, amount, lastdiscount, pay_type,
-        previousdue, paidamount, date, packing, delivery, total, deliverydate, paymentmethod = "" } = req.body;
+    const { shop, customername, orders, userId, amount, lastdiscount, pay_type, methodname,
+        previousdue, paidamount, date, packing, delivery, total, deliverydate, paymentmethod } = req.body;
 
     let transaction;
 
@@ -195,6 +198,7 @@ exports.ReturnPurchase = async (req, res) => {
             creator: req?.user,
             userId: userId,
             total: total,
+            methodname: methodname,
             paymentmethod: paymentmethod,
             packing: packing,
             delivery: delivery,
@@ -268,7 +272,7 @@ exports.ReturnPurchase = async (req, res) => {
 
 exports.PurchaseProduct = async (req, res) => {
 
-    const { shop, customername, orders, userId, amount, lastdiscount, pay_type, paymentmethod,
+    const { shop, customername, orders, userId, amount, lastdiscount, pay_type, paymentmethod, methodname,
         previousdue, paidamount, date, packing, delivery, total, deliverydate, updatedata } = req.body;
 
     let transaction;
@@ -290,6 +294,7 @@ exports.PurchaseProduct = async (req, res) => {
             paymentmethod: paymentmethod,
             packing: packing,
             delivery: delivery,
+            methodname: methodname,
             lastdiscount: lastdiscount,
             customername: customername,
             previousdue: user?.balance,

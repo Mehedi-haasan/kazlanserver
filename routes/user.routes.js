@@ -20,4 +20,8 @@ module.exports = function (app) {
     app.patch("/api/update/user/password", [jwt.verifyToken], controller.ChangePassword);
     app.get("/api/get/shop", [jwt.verifyToken], controller.getShop);
     app.get("/api/get/shop/list/with/info/:page/:pageSize", [jwt.verifyToken, jwt.isSuperAdmin], controller.getShopList);
+
+    app.patch("/api/update/single/users/by/super/admin", [jwt.verifyToken, jwt.isSuperAdmin], controller.UpdateUserBySuperAdmin);
+
+    app.delete("/api/delete/single/users/by/super/admin", [jwt.verifyToken, jwt.isSuperAdmin], controller.DeleteUserBySuperAdmin);
 };

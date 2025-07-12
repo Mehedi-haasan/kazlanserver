@@ -31,7 +31,10 @@ exports.getUsersWithRole = async (req, res) => {
     const offset = (page - 1) * pageSize;
     try {
         const data = await User.findAll({
-            where: { cretedby: req.userId },
+            where: {
+                compId: req.compId,
+                active: true
+            },
             limit: pageSize,
             offset: offset
         });
@@ -226,44 +229,14 @@ exports.getSingleUsers = async (req, res) => {
 
 exports.updateUsers = async (req, res) => {
     const id = req.userId;
-    const { name,
-        username,
-        bankname,
-        bankaccount,
-        accountnumber,
-        address,
-        email,
-        stateId,
-        usertype,
-        cretedby,
-        password,
-        image_url } = req.body;
-
+    const values = req.body;
     try {
-
-        await User.update(
-            {
-                name,
-                username,
-                bankname,
-                bankaccount,
-                accountnumber,
-                address,
-                email,
-                stateId,
-                usertype,
-                cretedby,
-                password: bcrypt.hashSync(password, 8),
-                image_url
-
-            },
-            {
-                where: { id }
-            }
+        await User.update(values,
+            { where: { id } }
         );
         return res.status(200).send({
             success: true,
-            message: "Password Changed Successfulll",
+            message: "User Info Changed Successfulll",
         });
 
     } catch (error) {
@@ -334,4 +307,36 @@ exports.ChangePassword = async (req, res) => {
 };
 
 
+exports.UpdateUserBySuperAdmin = async (req, res) => {
+    const values = req.body;
+    try {
+        await User.update(values,
+            { where: { id: values?.id } }
+        );
+        return res.status(200).send({
+            success: true,
+            message: "User Info Changed Successfulll",
+        });
+
+    } catch (error) {
+        return res.status(500).send({ success: false, message: error.message });
+    }
+};
+
+exports.DeleteUserBySuperAdmin = async (req, res) => {
+    const values = req.body;
+    values.active = false
+    try {
+        await User.update(values,
+            { where: { id: values?.id } }
+        );
+        return res.status(200).send({
+            success: true,
+            message: "User Info Changed Successfulll",
+        });
+
+    } catch (error) {
+        return res.status(500).send({ success: false, message: error.message });
+    }
+};
 

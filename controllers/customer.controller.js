@@ -176,13 +176,22 @@ exports.CreateCustomer = async (req, res) => {
             });
         }
 
+        let userBalance = 0
+        if (balance_type === "To Receive") {
+            userBalance = balance
+        } else if (balance_type === "To Pay") {
+            userBalance = balance * -1
+        } else {
+            userBalance = balance
+        }
+
         let data = await db.customer.create({
             name: name,
             phone: phone,
             bankname: bankname,
             accountname: accountname,
             accountnumber: accountnumber,
-            balance: balance,
+            balance: userBalance,
             balance_type: balance_type,
             address: address,
             email: email,
@@ -283,6 +292,7 @@ exports.UpdateCustomerBalance = async (req, res) => {
             packing: 0,
             delivery: 0,
             lastdiscount: 0,
+            methodname: req.body.methodname,
             customername: customer?.name,
             previousdue: customer?.balance,
             paidamount: parseInt(req.body.paid),
