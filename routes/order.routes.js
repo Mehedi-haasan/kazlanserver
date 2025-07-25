@@ -17,4 +17,9 @@ module.exports = function (app) {
     app.post("/api/purchase/product", [jwt.verifyToken, jwt.isAdmin], controller.PurchaseProduct);
     app.post('/api/return/purchase', jwt.verifyToken, controller.ReturnPurchase)
 
+
+    app.get('/api/get/offline/data', jwt.verifyToken, controller.GetOfflineData);
+    app.post('/api/postget/offline/data', jwt.verifyToken, controller.OfflineToOnline)
+    app.delete('/api/delete/offline/data', jwt.verifyToken, controller.DeleteLocalData)
+
 }    

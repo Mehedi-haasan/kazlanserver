@@ -357,3 +357,158 @@ exports.PurchaseProduct = async (req, res) => {
         res.status(500).send({ success: false, message: error.message });
     }
 }
+
+
+
+exports.OfflineToOnline = async (req, res) => {
+
+    const { allData } = req.body;
+
+    const transaction = await sequelize.transaction();
+
+    try {
+
+        await Promise.all(allData.map(async (item) => {
+            const invoice = await Invoice.create({
+                date: item?.date,
+                compId: req?.compId,
+                shopname: item?.shopname,
+                createdby: req.userId,
+                creator: req?.user,
+                userId: item?.userId,
+                total: item?.total,
+                methodname: item?.methodname,
+                paymentmethod: item?.paymentmethod,
+                packing: item?.packing,
+                delivery: item?.delivery,
+                lastdiscount: item?.lastdiscount,
+                customername: item?.customername,
+                previousdue: item?.previousdue,
+                paidamount: item?.total,
+                due: item?.due,
+                status: item?.status,
+                type: item?.type,
+                deliverydate: item?.deliverydate
+            });
+
+            if (!invoice || !invoice.id) {
+                await transaction.rollback();
+                return res.status(400).send({ success: false, message: "Failed to create invoice" });
+            }
+
+            const user = await Customer.findOne({ where: { id: item?.userId }, transaction });
+
+            const updatedOrders = item?.saleItems.map(order => ({
+                ...order,
+                invoice_id: invoice.id,
+                compId: req?.compId,
+                createdby: req?.userId,
+                creator: req?.user
+            }));
+
+            await SaleOrder.bulkCreate(updatedOrders, { transaction });
+
+            for (const pro of updatedOrders) {
+                const product = await Product.findOne({ where: { code: pro?.code } });
+                if (product) {
+                    await Product.update({
+                        qty: parseInt(product?.qty) - parseInt(pro?.qty)
+                    },
+                        { where: { code: product?.code, }, transaction });
+                }
+            }
+
+            if (user) { await Customer.update({ balance: user.balance + item?.due }, { where: { id: item?.userId }, transaction }); }
+
+            await Notification.create({
+                isSeen: 'false',
+                status: 'success',
+                userId: item?.userId,
+                shop: item?.shop,
+                compId: req?.compId,
+                invoiceId: invoice?.id,
+                createdby: req?.userId,
+                creator: req?.user
+            }, { transaction });
+
+        }))
+
+        await transaction.commit();
+
+        return res.status(200).send({
+            success: true,
+            message: "Upload Successfull"
+        })
+
+    } catch (error) {
+        if (transaction) await transaction.rollback();
+        res.status(500).send({ success: false, message: error.message });
+    }
+}
+
+
+exports.GetOfflineData = async (req, res) => {
+    try {
+        const data = await Invoice.findAll({
+            where: {
+                compId: req?.compId,
+                active: true
+            }
+        });
+
+        const allData = await Promise.all(data.map(async (it) => {
+            const saleItems = await SaleOrder.findAll({
+                where: {
+                    invoice_id: it?.id
+                },
+                attributes: ['active', 'invoice_id', 'product_id', 'username', 'code', 'userId', 'name', 'shop', 'price',
+                    'discount', 'discount_type', 'sellprice', 'qty', 'contact', 'date', 'type', 'deliverydate', 'categoryId']
+            });
+            return {
+                ...it.toJSON(),
+                saleItems: saleItems
+            };
+        }));
+
+        return res.status(200).send({
+            success: true,
+            items: allData,
+        });
+
+    } catch (error) {
+        return res.status(500).send({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
+
+exports.DeleteLocalData = async (req, res) => {
+    try {
+        // Soft-delete all invoice records
+        await Invoice.update(
+            { active: false },
+            { where: { compId: req?.compId, active: true } }
+        );
+
+        // Soft-delete all sale order records
+        await SaleOrder.update(
+            { active: false },
+            { where: { compId: req?.compId, active: true } }
+        );
+
+        return res.status(200).send({
+            success: true,
+            message: "All invoice and sale data have been marked as inactive.",
+        });
+
+    } catch (error) {
+        return res.status(500).send({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
+

@@ -226,7 +226,7 @@ exports.RecentInvoice = async (req, res) => {
         const offset = (page - 1) * pageSize;
 
         let data = await Invoice.findAll({
-            where: { compId: req?.compId },
+            where: { compId: req?.compId, active: true },
             limit: pageSize,
             offset: offset,
             order: [['createdAt', 'DESC']],

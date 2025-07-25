@@ -5,6 +5,10 @@ module.exports = (sequelize, Sequelize) => {
             primaryKey: true,
             autoIncrement: true,
         },
+        active: {
+            type: Sequelize.BOOLEAN,
+            defaultValue: true
+        },
         date: {
             type: Sequelize.STRING
         },

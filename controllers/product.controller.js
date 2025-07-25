@@ -34,6 +34,7 @@ exports.createProduct = async (req, res) => {
       product_type: req.body.product_type,
       categoryId: req.body.categoryId,
       editionId: req.body.editionId,
+      code: req.body.code,
       compId: req.compId,
       supplier: req.body.supplier,
       name: req.body.name,
