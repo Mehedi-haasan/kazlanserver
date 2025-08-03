@@ -18,6 +18,9 @@ exports.CreateOrder = async (req, res) => {
 
     try {
         transaction = await sequelize.transaction();
+
+        const user = await Customer.findOne({ where: { id: userId } });
+
         const invoice = await Invoice.create({
             date: date,
             compId: req?.compId,
@@ -35,9 +38,10 @@ exports.CreateOrder = async (req, res) => {
             previousdue: previousdue,
             paidamount: paidamount,
             due: total - paidamount,
-            status: total > paidamount ? "Due" : "Paid",
+            status: pay_type,
             type: "Sale",
-            deliverydate: deliverydate
+            deliverydate: deliverydate,
+            balance: parseInt(user?.balance) + parseInt(amount)
         });
         if (!invoice || !invoice.id) {
             return res.status(400).send({ success: false, message: "Failed to create invoice" });
@@ -61,21 +65,8 @@ exports.CreateOrder = async (req, res) => {
             }
         }
 
-        const user = await Customer.findOne({ where: { id: userId } });
+
         if (user) { await Customer.update({ balance: user.balance + amount }, { where: { id: userId } }); }
-
-
-
-        await Notification.create({
-            isSeen: 'false',
-            status: 'success',
-            userId: userId,
-            shop: shop,
-            compId: req?.compId,
-            invoiceId: invoice.id,
-            createdby: req?.userId,
-            creator: req?.user
-        });
 
         await transaction.commit();
         return res.status(200).send({
@@ -120,10 +111,12 @@ exports.ReturnOrder = async (req, res) => {
             customername: customername,
             previousdue: user?.balance,
             paidamount: total,
+            return: total,
             due: 0,
             status: pay_type,
             type: "Sale Return",
-            deliverydate: deliverydate
+            deliverydate: deliverydate,
+            balance: parseInt(user?.balance) - parseInt(total)
         });
         if (!invoice || !invoice.id) {
             return res.status(400).send({ success: false, message: "Failed to create invoice" });
@@ -150,19 +143,6 @@ exports.ReturnOrder = async (req, res) => {
 
         if (user) { await Customer.update({ balance: user.balance - total }, { where: { id: userId } }); }
 
-
-
-        await Notification.create({
-            isSeen: 'false',
-            status: 'success',
-            userId: userId,
-            shop: shop,
-            compId: req?.compId,
-            invoiceId: invoice.id,
-            createdby: req?.userId,
-            creator: req?.user
-        });
-
         await transaction.commit();
         return res.status(200).send({
             success: true,
@@ -176,6 +156,79 @@ exports.ReturnOrder = async (req, res) => {
         res.status(500).send({ success: false, message: error.message });
     }
 }
+
+
+exports.UpdateOrder = async (req, res) => {
+
+    const { invoice, allData } = req.body;
+
+    try {
+
+        const PrevInvoice = await Invoice.findOne({ where: { id: invoice?.id } })
+        const Invo = await Invoice.update(invoice, { where: { id: invoice?.id } });
+        const updatedOrders = allData.map(order => ({
+            ...order,
+            invoice_id: invoice.id,
+            compId: req?.compId,
+            createdby: req?.userId,
+            creator: req?.user
+        }));
+
+        let ReturnDatas = await SaleOrder.findAll({ where: { invoice_id: invoice?.id } })
+        await Promise.all(ReturnDatas?.map(async (pro) => {
+            const product = await Product.findOne({ where: { id: pro?.product_id } });
+            if (product) {
+                await Product.update(
+                    { qty: parseInt(product.qty) + parseInt(pro.qty) },
+                    { where: { id: product.id } }
+                );
+            }
+        }));
+
+        let DeleteData = await SaleOrder.update(
+            { active: false },
+            { where: { invoice_id: invoice?.id } }
+        );
+
+        await SaleOrder.bulkCreate(updatedOrders);
+
+        await Promise.all(updatedOrders?.map(async (pro) => {
+            const product = await Product.findOne({ where: { id: pro?.product_id } });
+            if (product) {
+                await Product.update(
+                    { qty: parseInt(product?.qty) - parseInt(pro?.qty) },
+                    { where: { id: product.id } }
+                );
+            }
+        }));
+
+        const user = await Customer.findOne({ where: { id: invoice?.userId } });
+
+        if (user) {
+            const adjustedBalance = user.balance - PrevInvoice?.paidamount + invoice?.total;
+
+            await Customer.update(
+                { balance: adjustedBalance },
+                { where: { id: invoice?.userId } }
+            );
+        }
+
+
+
+
+        return res.status(200).send({
+            success: true,
+            message: "Update Order Successfull",
+            invoice: invoice?.id
+
+        })
+
+    } catch (error) {
+        if (transaction) await transaction.rollback();
+        res.status(500).send({ success: false, message: error.message });
+    }
+}
+
 
 
 
@@ -206,10 +259,12 @@ exports.ReturnPurchase = async (req, res) => {
             customername: customername,
             previousdue: previousdue,
             paidamount: total,
+            return: total,
             due: 0,
             status: pay_type,
             type: "Return Purchase",
-            deliverydate: deliverydate
+            deliverydate: deliverydate,
+            balance: parseInt(user?.balance) + parseInt(amount)
         });
         if (!invoice || !invoice.id) {
             return res.status(400).send({ success: false, message: "Failed to create invoice" });
@@ -241,18 +296,6 @@ exports.ReturnPurchase = async (req, res) => {
 
         if (user) { await Customer.update({ balance: user.balance + amount }, { where: { id: userId } }); }
 
-
-
-        await Notification.create({
-            isSeen: 'false',
-            status: 'success',
-            userId: userId,
-            shop: shop,
-            compId: req?.compId,
-            invoiceId: invoice.id,
-            createdby: req?.userId,
-            creator: req?.user
-        });
 
         // await transaction.commit();
         return res.status(200).send({
@@ -302,7 +345,8 @@ exports.PurchaseProduct = async (req, res) => {
             due: total - paidamount,
             status: pay_type,
             type: "Purchase items",
-            deliverydate: deliverydate
+            deliverydate: deliverydate,
+            balance: parseInt(user?.balance) - parseInt(amount)
         });
         if (!invoice || !invoice.id) {
             return res.status(400).send({ success: false, message: "Failed to create invoice" });
@@ -377,7 +421,7 @@ exports.OfflineToOnline = async (req, res) => {
                 creator: req?.user,
                 userId: item?.userId,
                 total: item?.total,
-                methodname: item?.methodname,
+                methodname: "Offline",
                 paymentmethod: item?.paymentmethod,
                 packing: item?.packing,
                 delivery: item?.delivery,

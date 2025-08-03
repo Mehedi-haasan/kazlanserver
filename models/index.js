@@ -35,6 +35,7 @@ db.notification = require("./notification.model")(sequelize, Sequelize);
 db.invoice = require("./invoice.model")(sequelize, Sequelize);
 db.brand = require("./brand.model")(sequelize, Sequelize);
 db.customer = require("./customer.model")(sequelize, Sequelize);
+db.attribute = require("./attribute.model")(sequelize, Sequelize);
 
 // Sale Order Relationship
 db.product.hasMany(db.saleorder, {

@@ -1,15 +1,13 @@
 const db = require("../models");
-const Brand = db.brand;
+const Attribute = db.attribute;
 const Op = db.Sequelize.Op;
-const deletePhoto = require('../controllers/filedelete.controller');
 
-exports.getBrandAll = async (req, res) => {
+exports.getAttributrAll = async (req, res) => {
     try {
-        let data = await Brand.findAll({
-            attributes: ['id', 'name', 'image_url'],
-            where: { compId: req?.compId },
+        let data = await Attribute.findAll({
+            attributes: ['id', 'name'],
+            where: { compId: req?.compId, active: true },
             order: [['createdAt', 'DESC']],
-            active: true,
         })
         return res.status(200).send({
             success: true,
@@ -21,18 +19,35 @@ exports.getBrandAll = async (req, res) => {
     }
 }
 
-exports.getBrandWithPage = async (req, res) => {
+exports.getAttributrType = async (req, res) => {
+    try {
+        let data = await Attribute.findAll({
+            attributes: ['id', 'name'],
+            where: { compId: req?.compId, type: req.params.type, active: true },
+            order: [['createdAt', 'DESC']],
+        })
+        return res.status(200).send({
+            success: true,
+            items: data
+        })
+
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+}
+
+exports.getAttributrWithPage = async (req, res) => {
     const page = parseInt(req.params.page) || 1;
     const pageSize = parseInt(req.params.pageSize) || 10;
     const offset = (page - 1) * pageSize;
     try {
-        let data = await Brand.findAll({
+        let data = await Attribute.findAll({
             where: { compId: req?.compId, active: true },
             limit: pageSize,
             offset: offset,
             order: [['createdAt', 'DESC']],
         })
-        const totalCount = await Brand.count({
+        const totalCount = await Attribute.count({
             where: {
                 compId: req?.compId
             }
@@ -51,10 +66,10 @@ exports.getBrandWithPage = async (req, res) => {
 
 
 
-exports.searchBrand = async (req, res) => {
+exports.searchAttributr = async (req, res) => {
     const searchTerm = req.params.name;
     try {
-        let data = await Brand.findAll({
+        let data = await Attribute.findAll({
             where: {
                 name: { [Op.like]: `%${searchTerm}%` },
                 compId: req?.compId,
@@ -75,27 +90,27 @@ exports.searchBrand = async (req, res) => {
 
 
 
-exports.CreateBrand = async (req, res) => {
+exports.CreateAttributr = async (req, res) => {
 
     try {
-        const data = await Brand.findOne({
+        const data = await Attribute.findOne({
             where: {
                 name: req.body.name,
-                compId: req.body.compId ? req.body.compId : req.compId
+                compId: req.compId
             }
         })
 
         if (data) {
             return res.status(200).send({
                 success: true,
-                message: "Brand already exist"
+                message: "Attribute already exist"
             })
         }
 
-        await Brand.create({
+        await Attribute.create({
             active: true,
+            type: req.body.type,
             name: req.body.name,
-            image_url: req.body.image_url,
             compId: req.compId,
             createdby: req.userId,
             creator: req.user
@@ -103,7 +118,7 @@ exports.CreateBrand = async (req, res) => {
 
         return res.status(200).send({
             success: true,
-            message: "Brand Created Successfully"
+            message: "Attribute Created Successfully"
         })
 
     } catch (error) {
@@ -113,9 +128,9 @@ exports.CreateBrand = async (req, res) => {
 }
 
 
-exports.updateBrand = async (req, res) => {
+exports.updateAttributr = async (req, res) => {
     try {
-        const { id, name, image_url, url } = req.body;
+        const { id, type, name } = req.body;
 
         if (!id) {
             return res.status(400).send({
@@ -125,8 +140,8 @@ exports.updateBrand = async (req, res) => {
         }
 
 
-        const [updatedRowsCount] = await Brand.update(
-            { name: name, image_url: image_url, creator: req.user },
+        const [updatedRowsCount] = await Attribute.update(
+            { name: name, type: type, creator: req.user },
             { where: { id: id } }
         );
 
@@ -136,10 +151,9 @@ exports.updateBrand = async (req, res) => {
                 message: "Order not found or status is already the same."
             });
         }
-        deletePhoto(url)
         return res.status(200).send({
             success: true,
-            message: `Brand Updated successfully`,
+            message: `Attribute Updated successfully`,
         });
 
     } catch (error) {
@@ -148,21 +162,12 @@ exports.updateBrand = async (req, res) => {
 }
 
 
-exports.DeleteBrand = async (req, res) => {
+exports.DeleteAttributr = async (req, res) => {
     try {
-        const { id } = req.body;
 
-        if (!id) {
-            return res.status(400).send({
-                success: false,
-                message: "Brand ID is required."
-            });
-        }
-
-        await Brand.update({
+        await Attribute.update({
             active: false,
             name: req.body.name,
-            image_url: req.body.image_url,
             compId: req.compId,
             createdby: req.userId,
             creator: req.user
@@ -172,11 +177,9 @@ exports.DeleteBrand = async (req, res) => {
             }
         })
 
-
-        // deletePhoto(url)
         return res.status(200).send({
             success: true,
-            message: "Brand deleted successfully.",
+            message: "Attribute deleted successfully.",
         });
 
     } catch (error) {

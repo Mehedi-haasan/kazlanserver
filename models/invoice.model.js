@@ -63,8 +63,16 @@ module.exports = (sequelize, Sequelize) => {
         methodname: {
             type: Sequelize.STRING
         },
+        return: {
+            type: Sequelize.INTEGER,
+            defaultValue: 0,
+        },
         deliverydate: {
             type: Sequelize.STRING
+        },
+        balance: {
+            type: Sequelize.INTEGER,
+            defaultValue: 0
         }
     }, { charset: 'utf8mb4', collate: 'utf8mb4_unicode_ci' });
 

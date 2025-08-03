@@ -52,12 +52,20 @@ exports.GetCustomerWithPage = async (req, res) => {
     const pageSize = parseInt(req.params.pageSize) || 10;
     const offset = (page - 1) * pageSize;
     try {
+
+
+        let whereCondition = {
+            active: true,
+            compId: req.compId,
+            usertype: "Customer",
+        };
+        if (req.params.customertype === "Normal" || req.params.customertype === "Party") {
+            whereCondition['customertype'] = req.params.customertype;
+        }
+
         let data = await db.customer.findAll({
             limit: pageSize,
-            where: {
-                compId: req.compId,
-                usertype: "Customer"
-            },
+            where: whereCondition,
             offset: offset,
             include: [
                 { model: db.state }
@@ -130,6 +138,7 @@ exports.GetSupplierWithPage = async (req, res) => {
         let data = await db.customer.findAll({
             limit: pageSize,
             where: {
+                active: true,
                 compId: req.compId,
                 usertype: "Supplier"
             },
@@ -158,7 +167,7 @@ exports.GetSupplierWithPage = async (req, res) => {
 }
 
 exports.CreateCustomer = async (req, res) => {
-    const { name, phone, bankname, accountname, accountnumber, balance, customertype,
+    const { name, phone, bankname, accountname, accountnumber, balance, customertype, shopname,
         balance_type, address, email, stateId, usertype, image_url } = req.body;
     try {
         const existcustomer = await db.customer.findOne({
@@ -177,9 +186,9 @@ exports.CreateCustomer = async (req, res) => {
         }
 
         let userBalance = 0
-        if (balance_type === "To Receive") {
+        if (balance_type === "You Receive") {
             userBalance = balance
-        } else if (balance_type === "To Pay") {
+        } else if (balance_type === "You Pay") {
             userBalance = balance * -1
         } else {
             userBalance = balance
@@ -203,6 +212,29 @@ exports.CreateCustomer = async (req, res) => {
             image_url: image_url,
             customertype: customertype
         })
+
+        const Invoice = await db.invoice.create({
+            date: getFormattedDate(),
+            compId: req?.compId,
+            shopname: shopname,
+            createdby: req.userId,
+            creator: req?.user,
+            userId: data?.id,
+            total: userBalance,
+            paymentmethod: "",
+            methodname: `${usertype} Create`,
+            packing: 0,
+            delivery: 0,
+            lastdiscount: 0,
+            customername: data?.name,
+            previousdue: userBalance,
+            paidamount: 0,
+            due: 0,
+            status: customertype,
+            type: "Opening",
+            deliverydate: getFormattedDate(),
+            balance: userBalance
+        });
         return res.status(200).send({
             success: true,
             message: "Create Successfully",
@@ -280,7 +312,14 @@ exports.UpdateCustomerBalance = async (req, res) => {
                 message: "Customer not found",
             });
         }
-        const invoice = await db.invoice.create({
+        let curent = 0
+        if (req?.params?.type === "1") {
+            curent = customer?.balance + parseInt(req.body.paid)
+        } else if (req?.params?.type === "2") {
+            curent = customer?.balance - parseInt(req.body.paid)
+        }
+
+        const Invoice = await db.invoice.create({
             date: getFormattedDate(),
             compId: req?.compId,
             shopname: req?.body?.shop,
@@ -294,12 +333,13 @@ exports.UpdateCustomerBalance = async (req, res) => {
             lastdiscount: 0,
             methodname: req.body.methodname,
             customername: customer?.name,
-            previousdue: customer?.balance,
+            previousdue: curent,
             paidamount: parseInt(req.body.paid),
             due: 0,
             status: "Paid",
-            type: "Purchase items",
-            deliverydate: getFormattedDate()
+            type: `${req.body.type} by ${req.body.methodname}`,
+            deliverydate: getFormattedDate(),
+            balance: curent
         });
 
         if (req?.params?.type === "1") {
@@ -436,5 +476,37 @@ exports.PaymentHistory = async (req, res) => {
 
     } catch (error) {
         return res.status(500).send({ success: false, message: error.message });
+    }
+};
+
+
+exports.DeleteCustomer = async (req, res) => {
+    try {
+        // Find customer first
+        const customer = await db.customer.findOne({ where: { id: req.params.id } });
+
+        if (!customer) {
+            return res.status(404).send({
+                success: false,
+                message: "Customer not found"
+            });
+        }
+
+        // Soft delete (set active to false)
+        await db.customer.update(
+            { active: false },
+            { where: { id: req.params.id } }
+        );
+
+        return res.status(200).send({
+            success: true,
+            message: `${customer?.usertype} deleted successfully`
+        });
+
+    } catch (error) {
+        return res.status(500).send({
+            success: false,
+            message: error.message
+        });
     }
 };

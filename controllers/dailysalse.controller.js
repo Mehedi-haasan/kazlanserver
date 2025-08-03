@@ -43,7 +43,8 @@ exports.getOrder = async (req, res) => {
             limit: 10,
             where: {
                 invoice_id: req.params.id,
-                compId: req?.compId
+                compId: req?.compId,
+                active:true
             },
             include: [
                 {
@@ -80,11 +81,13 @@ exports.getOrder = async (req, res) => {
         let userData = {
             ...user?.toJSON(),
             state: state?.name,
+            address: user?.address,
             packing: invo?.packing,
             delivery: invo?.delivery,
             lastdiscount: invo?.lastdiscount,
             previousdue: invo?.previousdue,
             paidamount: invo?.paidamount,
+            type: invo?.type,
             date: invo?.date
         };
 
@@ -94,6 +97,7 @@ exports.getOrder = async (req, res) => {
             success: true,
             items: data,
             user: userData,
+            invoice: invo
         })
 
     } catch (error) {
