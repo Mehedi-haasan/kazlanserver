@@ -74,6 +74,7 @@ exports.getProductTemplete = async (req, res) => {
   const compId = req?.compId
 
   const whereClause = {};
+  whereClause['active'] = true
   if (!isNaN(compId)) whereClause.compId = compId;
   if (!isNaN(brandId)) whereClause.brandId = brandId;
   if (!isNaN(catId)) whereClause.categoryId = catId;
@@ -301,5 +302,85 @@ exports.DeleteProduct = async (req, res) => {
 
   } catch (error) {
     return res.status(500).send({ success: false, message: error.message });
+  }
+};
+
+
+exports.BulkUpdate = async (req, res) => {
+  try {
+    const { data } = req.body;
+
+    if (!Array.isArray(data) || data.length === 0) {
+      return res.status(400).json({
+        success: false,
+        message: "No data provided for update."
+      });
+    }
+
+
+    for (const item of data) {
+      if (!item.id) continue;
+
+      await Product.update(
+        { active: item.active }, // ✅ Only update `active` field
+        { where: { id: item.id } }
+      );
+    }
+
+    return res.status(200).json({
+      success: true,
+      message: "Products updated successfully."
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+
+
+exports.BulkGetProduct = async (req, res) => {
+  try {
+    const pageSize = parseInt(req.params.pageSize) || 10;
+    const offset = (page - 1) * pageSize;
+
+    let allProduct = await Product.findAll({
+      limit: pageSize,
+      offset: offset,
+    })
+
+    return res.status(200).json({
+      success: true,
+      items: allProduct
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
+  }
+};
+
+
+exports.BulkCreate = async (req, res) => {
+  try {
+    let { data } = req.body
+
+    let allProduct = await Product.bulkCreate(data);
+
+    return res.status(200).json({
+      success: true,
+      message: "Updated Successfully"
+    });
+
+  } catch (error) {
+    return res.status(500).json({
+      success: false,
+      message: error.message
+    });
   }
 };

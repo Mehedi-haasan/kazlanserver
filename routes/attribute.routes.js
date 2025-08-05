@@ -19,4 +19,10 @@ module.exports = function (app) {
     app.post("/api/delete/attribute", [jwt.verifyToken, jwt.isAdmin], controller.DeleteAttributr);
 
 
+    app.post("/api/bulk/update/attribute", [jwt.verifyToken, jwt.isAdmin], controller.BulkUpdate);
+
+    app.post("/api/bulk/create/attribute", [jwt.verifyToken, jwt.isAdmin], controller.BulkCreate);
+
+    app.post("/api/bulk/get/attribute", [jwt.verifyToken, jwt.isAdmin], controller.BulkGetAttribute);
+
 };

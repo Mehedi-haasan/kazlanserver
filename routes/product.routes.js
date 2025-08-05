@@ -29,5 +29,11 @@ module.exports = function (app) {
     app.get("/api/get/product/search/with/:name", Jwt.verifyToken, controller.searchProduct);
 
     app.get("/api/get/product/search/with/:edition/:category/:brand/:name", Jwt.verifyToken, controller.SecondSearchProduct);
+    
 
+    app.post("/api/bulk/update/product", [Jwt.verifyToken, Jwt.isAdmin], controller.BulkUpdate);
+
+    app.post("/api/bulk/create/product", [Jwt.verifyToken, Jwt.isAdmin], controller.BulkCreate);
+
+    app.post("/api/bulk/get/product", [Jwt.verifyToken, Jwt.isAdmin], controller.BulkGetProduct);
 };

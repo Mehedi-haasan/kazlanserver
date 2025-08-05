@@ -18,4 +18,10 @@ module.exports = function (app) {
     app.post("/api/delete/brand", [jwt.verifyToken, jwt.isAdmin], controller.DeleteBrand);
 
 
+    app.post("/api/bulk/update/brand", [jwt.verifyToken, jwt.isAdmin], controller.BulkUpdate);
+
+    app.post("/api/bulk/create/brand", [jwt.verifyToken, jwt.isAdmin], controller.BulkCreate);
+
+    app.post("/api/bulk/get/brand", [jwt.verifyToken, jwt.isAdmin], controller.BulkGetBrand);
+
 };

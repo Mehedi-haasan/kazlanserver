@@ -44,7 +44,7 @@ exports.getOrder = async (req, res) => {
             where: {
                 invoice_id: req.params.id,
                 compId: req?.compId,
-                active:true
+                active: true
             },
             include: [
                 {
@@ -258,15 +258,20 @@ exports.RecentPurchase = async (req, res) => {
         const page = parseInt(req.params.page) || 1;
         const pageSize = parseInt(req.params.pageSize) || 10;
         const offset = (page - 1) * pageSize;
+        let whereClouse = { compId: req?.compId, type: type }
+        
+        if (req.body.userId !== null && req.body.userId !== undefined) {
+            whereClouse['userId'] = req.body.userId;
+        }
 
         let data = await Invoice.findAll({
-            where: { compId: req?.compId, type: type },
+            where: whereClouse,
             limit: pageSize,
             offset: offset,
             order: [['createdAt', 'DESC']],
         });
 
-        const totalInvoices = await Invoice.count({ where: { compId: req?.compId, type: type } });
+        const totalInvoices = await Invoice.count({ where: whereClouse });
         const totalPages = Math.ceil(totalInvoices / pageSize);
 
         return res.status(200).send({
@@ -339,14 +344,19 @@ exports.OrderFromTo = async (req, res) => {
     const to = new Date(toDate);
     to.setHours(23, 59, 59, 999);
 
+    let whereClouse = {
+        compId: req?.compId,
+        createdAt: {
+            [Op.between]: [from, to],
+        },
+    }
+    if (req.body.userId !== null && req.body.userId !== undefined) {
+        whereClouse['userId'] = req.body.userId;
+    }
+
     try {
         const data = await Invoice.findAll({
-            where: {
-                compId: req?.compId,
-                createdAt: {
-                    [Op.between]: [from, to],
-                },
-            },
+            where: whereClouse,
             order: [['createdAt', 'DESC']],
         });
 

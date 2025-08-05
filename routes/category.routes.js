@@ -11,11 +11,18 @@ module.exports = function (app) {
     });
 
     app.post("/api/create/category", [jwt.verifyToken, jwt.isAdmin], controller.CreateCategory);
-    app.get("/api/get/category/:page/:pageSize",jwt.verifyToken, controller.getCategory);
-    app.get("/api/get/category",jwt.verifyToken, controller.getCategoryAll);
+    app.get("/api/get/category/:page/:pageSize", jwt.verifyToken, controller.getCategory);
+    app.get("/api/get/category", jwt.verifyToken, controller.getCategoryAll);
     app.get("/api/get/category/by/productValue", controller.getCategoryByProduct);
     app.patch("/api/update/category", [jwt.verifyToken, jwt.isAdmin], controller.updateCategory);
     app.post("/api/delete/category", [jwt.verifyToken, jwt.isAdmin], controller.DeleteCategory);
     app.get("/api/get/category/filter/search/:name", jwt.verifyToken, controller.SearchCategory);
+
+
+    app.post("/api/bulk/update/category", [jwt.verifyToken, jwt.isAdmin], controller.BulkUpdate);
+
+    app.post("/api/bulk/create/category", [jwt.verifyToken, jwt.isAdmin], controller.BulkCreate);
+
+    app.post("/api/bulk/get/category", [jwt.verifyToken, jwt.isAdmin], controller.BulkGetCategory);
 
 };

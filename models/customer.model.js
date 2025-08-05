@@ -7,6 +7,7 @@ module.exports = (sequelize, Sequelize) => {
         },
         active: {
             type: Sequelize.BOOLEAN,
+            defaultValue: true
         },
         name: {
             type: Sequelize.STRING
