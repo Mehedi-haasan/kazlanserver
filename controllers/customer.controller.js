@@ -12,6 +12,7 @@ exports.GetCustomerWithState = async (req, res) => {
         let data = await db.customer.findAll({
             limit: 20,
             where: {
+                active: true,
                 compId: req.compId,
                 stateId: req.params.stateId,
                 usertype: "Customer"
@@ -32,6 +33,7 @@ exports.GetSupplierWithState = async (req, res) => {
         let data = await db.customer.findAll({
             limit: 20,
             where: {
+                active: true,
                 compId: req.compId,
                 stateId: req.params.stateId,
                 usertype: "Supplier"
@@ -74,6 +76,7 @@ exports.GetCustomerWithPage = async (req, res) => {
 
         let total = await db.customer.count({
             where: {
+                active: true,
                 compId: req.compId,
                 usertype: "Customer"
             }
@@ -151,6 +154,7 @@ exports.GetSupplierWithPage = async (req, res) => {
 
         let total = await db.customer.count({
             where: {
+                active: true,
                 compId: req.compId,
                 usertype: "Supplier"
             }
@@ -227,7 +231,7 @@ exports.CreateCustomer = async (req, res) => {
             delivery: 0,
             lastdiscount: 0,
             customername: data?.name,
-            previousdue: userBalance,
+            previousdue: 0,
             paidamount: 0,
             due: 0,
             status: customertype,
@@ -298,7 +302,7 @@ exports.UpdateCustomer = async (req, res) => {
     }
 };
 
-exports.UpdateCustomerBalance = async (req, res) => {
+exports. UpdateCustomerBalance = async (req, res) => {
 
     try {
         let customer = await db.customer.findOne({
@@ -505,6 +509,87 @@ exports.DeleteCustomer = async (req, res) => {
 
     } catch (error) {
         return res.status(500).send({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+
+
+exports.BulkUpdate = async (req, res) => {
+    try {
+        const { data } = req.body;
+
+        if (!Array.isArray(data) || data.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "No data provided for update."
+            });
+        }
+
+
+        for (const item of data) {
+            if (!item.id) continue;
+
+            await db.customer.update(
+                { active: item.active }, // ✅ Only update `active` field
+                { where: { id: item.id } }
+            );
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "Attributes updated successfully."
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+
+
+exports.BulkGetCustomer = async (req, res) => {
+    try {
+        const pageSize = parseInt(req.params.pageSize) || 10;
+        const offset = (page - 1) * pageSize;
+
+        let allBrand = await db.customer.findAll({
+            limit: pageSize,
+            offset: offset,
+        })
+
+        return res.status(200).json({
+            success: true,
+            items: allBrand
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+
+exports.BulkCreate = async (req, res) => {
+    try {
+        let { data } = req.body
+
+        await db.customer.bulkCreate(data);
+
+        return res.status(200).json({
+            success: true,
+            message: "Updated Successfully"
+        });
+
+    } catch (error) {
+        return res.status(500).json({
             success: false,
             message: error.message
         });

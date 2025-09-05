@@ -35,7 +35,7 @@ exports.createProduct = async (req, res) => {
       categoryId: req.body.categoryId,
       editionId: req.body.editionId,
       code: req.body.code,
-      compId: req.compId,
+      compId: req.body.compId ? req.body.compId : req.compId,
       supplier: req.body.supplier,
       name: req.body.name,
       description: req.body.description,
@@ -71,7 +71,7 @@ exports.getProductTemplete = async (req, res) => {
   const brandId = parseInt(req.params.brandId);
   const catId = parseInt(req.params.catId);
   const offset = (page - 1) * pageSize;
-  const compId = req?.compId
+  const compId = req.params.compId ? req.params.compId : req?.compId
 
   const whereClause = {};
   whereClause['active'] = true

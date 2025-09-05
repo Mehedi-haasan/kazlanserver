@@ -11,6 +11,7 @@ module.exports = function (app) {
 
     app.get('/api/get/order', jwt.verifyToken, controller.getAllOrder);
     app.get('/api/get/order/:id', jwt.verifyToken, controller.getOrder);
+    app.get('/api/get/invo/order/:id', jwt.verifyToken, controller.getOrderInvo);
 
 
     app.get('/api/get/order/daily/salse', jwt.verifyToken, controller.getDailySalse);
@@ -20,6 +21,7 @@ module.exports = function (app) {
 
     app.get('/api/get/user/recent/order/:page/:ageSize', jwt.verifyToken, controller.RecentInvoice);
     app.post('/api/get/user/recent/purchase/:page/:pageSize', jwt.verifyToken, controller.RecentPurchase);
-    app.post('/api/get/user/recent/order/from/to', jwt.verifyToken, controller.OrderFromTo);
+
+    app.post('/api/get/user/recent/order/from/to/:page/:pageSize', jwt.verifyToken, controller.OrderFromTo);
 
 }    

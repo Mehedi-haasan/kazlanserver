@@ -5,6 +5,7 @@ const Product = db.product;
 const Invoice = db.invoice;
 const Op = db.Sequelize.Op;
 const { fn, col } = require("sequelize");
+// const { Op } = require('sequelize');
 
 
 exports.getAllOrder = async (req, res) => {
@@ -59,6 +60,41 @@ exports.getOrder = async (req, res) => {
         })
 
 
+        let invo = await db.invoice.findOne({
+            where: {
+                id: req.params.id
+            }
+        })
+
+        const nextInvo = await Invoice.findOne({
+            where: {
+                id: { [Op.gt]: req.params.id },
+                compId: req?.compId,
+                active: true,
+            },
+            order: [['id', 'ASC']]
+        });
+
+        const prevInvo = await Invoice.findOne({
+            where: {
+                id: { [Op.lt]: req.params.id },
+                compId: req?.compId,
+                active: true,
+            },
+            order: [['id', 'DESC']]
+        });
+
+
+        const lastInvo = await Invoice.findOne({
+            where: {
+                compId: req?.compId,
+                active: true,
+            },
+            order: [['id', 'DESC']],
+            limit: 1
+        });
+
+
 
         let user = await Customer.findOne({
             where: {
@@ -69,12 +105,6 @@ exports.getOrder = async (req, res) => {
         let state = await db.state.findOne({
             where: {
                 id: user?.stateId
-            }
-        })
-
-        let invo = await db.invoice.findOne({
-            where: {
-                id: req.params.id
             }
         })
 
@@ -97,13 +127,87 @@ exports.getOrder = async (req, res) => {
             success: true,
             items: data,
             user: userData,
-            invoice: invo
+            invoice: invo,
+            nextInvo: nextInvo,
+            prevInvo: prevInvo,
+            lastInvo: lastInvo
         })
 
     } catch (error) {
         return res.status(500).send({ success: false, message: error.message });
     }
 }
+
+
+exports.getOrderInvo = async (req, res) => {
+
+    try {
+
+        let invo = await db.invoice.findOne({
+            where: {
+                id: req.params.id
+            }
+        })
+
+        const nextInvo = await Invoice.findOne({
+            where: {
+                id: { [Op.gt]: req.params.id },
+                compId: req?.compId,
+                active: true,
+            },
+            order: [['id', 'ASC']]
+        });
+
+        const prevInvo = await Invoice.findOne({
+            where: {
+                id: { [Op.lt]: req.params.id },
+                compId: req?.compId,
+                active: true,
+            },
+            order: [['id', 'DESC']]
+        });
+
+
+        const lastInvo = await Invoice.findOne({
+            where: {
+                compId: req?.compId,
+                active: true,
+            },
+            order: [['id', 'DESC']],
+            limit: 1
+        });
+
+
+
+        let user = await Customer.findOne({
+            where: {
+                id: invo?.userId
+            }
+        })
+
+        let state = await db.state.findOne({
+            where: {
+                id: user?.stateId
+            }
+        })
+
+
+
+        return res.status(200).send({
+            success: true,
+            invoice: invo,
+            nextInvo: nextInvo,
+            prevInvo: prevInvo,
+            lastInvo: lastInvo,
+            state:state,
+            user:user
+        })
+
+    } catch (error) {
+        return res.status(500).send({ success: false, message: error.message });
+    }
+}
+
 
 
 async function groupSalesByHour(items) {
@@ -188,40 +292,6 @@ exports.getDailySalseReturnPurchase = async (req, res) => {
 };
 
 
-exports.getMonthlyOrder = async (req, res) => {
-    try {
-        const today = new Date();
-        const firstDayOfMonth = new Date(today.getFullYear(), today.getMonth(), 1);
-
-        let data = await SaleOrder.findAll({
-            where: {
-                createdAt: { [Op.gte]: firstDayOfMonth },
-                compId: req?.compId
-            },
-            limit: 500,
-            order: [["createdAt", "DESC"]]
-        });
-
-        const groupedOrders = await groupByDay(data);
-
-
-        const dataPoints = Object.entries(groupedOrders).map(([dateStr, data]) => ({
-            x: new Date(dateStr),
-            y: data.totalSales
-        }));
-
-        dataPoints.sort((a, b) => a.x - b.x);
-
-        return res.status(200).send({
-            success: true,
-            items: dataPoints
-        });
-
-    } catch (error) {
-        return res.status(500).send({ success: false, message: error.message });
-    }
-};
-
 
 exports.RecentInvoice = async (req, res) => {
     try {
@@ -258,8 +328,8 @@ exports.RecentPurchase = async (req, res) => {
         const page = parseInt(req.params.page) || 1;
         const pageSize = parseInt(req.params.pageSize) || 10;
         const offset = (page - 1) * pageSize;
-        let whereClouse = { compId: req?.compId, type: type }
-        
+        let whereClouse = { active: true, compId: req?.compId, type: type }
+
         if (req.body.userId !== null && req.body.userId !== undefined) {
             whereClouse['userId'] = req.body.userId;
         }
@@ -339,36 +409,51 @@ exports.getMonthlyOrder = async (req, res) => {
 
 exports.OrderFromTo = async (req, res) => {
     const { fromDate, toDate } = req.body;
-
     const from = new Date(fromDate);
     const to = new Date(toDate);
     to.setHours(23, 59, 59, 999);
 
+    const page = parseInt(req.params.page) || 1;
+    const pageSize = parseInt(req.params.pageSize) || 10;
+    const offset = (page - 1) * pageSize;
+
+
     let whereClouse = {
+        active: true,
         compId: req?.compId,
         createdAt: {
             [Op.between]: [from, to],
-        },
+        }
     }
     if (req.body.userId !== null && req.body.userId !== undefined) {
         whereClouse['userId'] = req.body.userId;
+    }
+    if (req.body.type !== null && req.body.type !== undefined) {
+        whereClouse['type'] = req.body.type;
     }
 
     try {
         const data = await Invoice.findAll({
             where: whereClouse,
+            limit: pageSize,
+            offset: offset,
             order: [['createdAt', 'DESC']],
         });
+
+        const count = await Invoice.count({ where: whereClouse });
 
         return res.status(200).send({
             success: true,
             compId: req?.compId,
             items: data,
+            count: count
         });
 
     } catch (error) {
         return res.status(500).send({ success: false, message: error.message });
     }
 };
+
+
 
 

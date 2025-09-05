@@ -19,6 +19,21 @@ exports.getAttributrAll = async (req, res) => {
     }
 }
 
+exports.GetSingleAttribute = async (req, res) => {
+    try {
+        let data = await Attribute.findOne({
+            where: { id: req?.params.id, active: true },
+        })
+        return res.status(200).send({
+            success: true,
+            items: data
+        })
+
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+}
+
 exports.getAttributrType = async (req, res) => {
     try {
         let data = await Attribute.findAll({

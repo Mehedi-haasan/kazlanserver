@@ -7,9 +7,25 @@ exports.getBrandAll = async (req, res) => {
     try {
         let data = await Brand.findAll({
             attributes: ['id', 'name', 'image_url'],
-            where: { compId: req?.compId },
+            where: { compId: req?.compId, active: true, },
             order: [['createdAt', 'DESC']],
-            active: true,
+        })
+        return res.status(200).send({
+            success: true,
+            items: data
+        })
+
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+}
+
+
+
+exports.GetSingleBrand = async (req, res) => {
+    try {
+        let data = await Brand.findOne({
+            where: { id: req?.params.id, active: true, },
         })
         return res.status(200).send({
             success: true,
@@ -115,7 +131,7 @@ exports.CreateBrand = async (req, res) => {
 
 exports.updateBrand = async (req, res) => {
     try {
-        const { id, name, image_url, url } = req.body;
+        const { id, name, image_url } = req.body;
 
         if (!id) {
             return res.status(400).send({
@@ -136,7 +152,6 @@ exports.updateBrand = async (req, res) => {
                 message: "Order not found or status is already the same."
             });
         }
-        deletePhoto(url)
         return res.status(200).send({
             success: true,
             message: `Brand Updated successfully`,

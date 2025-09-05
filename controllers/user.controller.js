@@ -25,6 +25,25 @@ exports.getUsers = async (req, res) => {
     }
 };
 
+exports.getUser = async (req, res) => {
+    try {
+        const data = await User.findOne({
+            where: { id: req.params.id },
+            include: [
+                { model: db.role }
+            ]
+        });
+
+        return res.status(200).send({
+            success: true,
+            items: data,
+        });
+
+    } catch (error) {
+        return res.status(500).send({ success: false, message: error.message });
+    }
+};
+
 exports.getUsersWithRole = async (req, res) => {
     const page = parseInt(req.params.page) || 1;
     const pageSize = parseInt(req.params.pageSize) || 10;
@@ -147,6 +166,7 @@ exports.getShopList = async (req, res) => {
     try {
         // Fetch all shops
         const shops = await db.company.findAll({
+            where: { active: true },
             limit: pageSize,
             offset: offset
         });
@@ -189,7 +209,7 @@ exports.getShopList = async (req, res) => {
             );
         }
 
-        let count = await db.company.count({});
+        let count = await db.company.count({ where: { active: true } });
 
         return res.status(200).send({
             success: true,
@@ -201,8 +221,6 @@ exports.getShopList = async (req, res) => {
         return res.status(500).send({ success: false, message: error.message });
     }
 };
-
-
 
 exports.getSingleUsers = async (req, res) => {
     try {
@@ -340,3 +358,81 @@ exports.DeleteUserBySuperAdmin = async (req, res) => {
     }
 };
 
+exports.BulkUpdate = async (req, res) => {
+    try {
+        const { data } = req.body;
+
+        if (!Array.isArray(data) || data.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "No data provided for update."
+            });
+        }
+
+
+        for (const item of data) {
+            if (!item.id) continue;
+
+            await User.update(
+                { active: item.active }, // ✅ Only update `active` field
+                { where: { id: item.id } }
+            );
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "User updated successfully."
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+
+
+exports.BulkGetUsers = async (req, res) => {
+    try {
+        const pageSize = parseInt(req.params.pageSize) || 10;
+        const offset = (page - 1) * pageSize;
+
+        let allBrand = await User.findAll({
+            limit: pageSize,
+            offset: offset,
+        })
+
+        return res.status(200).json({
+            success: true,
+            items: allBrand
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+
+exports.BulkCreate = async (req, res) => {
+    try {
+        let { data } = req.body
+
+        await User.bulkCreate(data);
+
+        return res.status(200).json({
+            success: true,
+            message: "Updated Successfully"
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};

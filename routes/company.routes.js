@@ -14,4 +14,12 @@ module.exports = function (app) {
     app.get('/api/get/company/info/:id', jwt.verifyToken, controller.GetCompanyInfo);
     app.get('/api/get/all/company', [jwt.verifyToken, jwt.isSuperAdmin], controller.GetAllCompany);
     app.delete('/api/delete/company/:id', [jwt.verifyToken, jwt.isSuperAdmin], controller.DeleteCompany);
+
+
+    
+    app.post("/api/bulk/update/company", [jwt.verifyToken, jwt.isAdmin], controller.BulkUpdate);
+
+    app.post("/api/bulk/create/company", [jwt.verifyToken, jwt.isAdmin], controller.BulkCreate);
+
+    app.post("/api/bulk/get/company", [jwt.verifyToken, jwt.isAdmin], controller.BulkGetCompany);
 }

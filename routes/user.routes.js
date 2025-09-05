@@ -11,6 +11,7 @@ module.exports = function (app) {
     });
 
     app.get("/api/get/users", [jwt.verifyToken], controller.getUsers);
+    app.get("/api/get/users/:id", [jwt.verifyToken], controller.getUser);
     app.get("/api/get/users/with/role/:page/:pageSize", [jwt.verifyToken], controller.getUsersWithRole);
     app.get("/api/get/users/:stateId", [jwt.verifyToken], controller.getUsersbyState);
 
@@ -24,4 +25,11 @@ module.exports = function (app) {
     app.patch("/api/update/single/users/by/super/admin", [jwt.verifyToken, jwt.isSuperAdmin], controller.UpdateUserBySuperAdmin);
 
     app.delete("/api/delete/single/users/by/super/admin", [jwt.verifyToken, jwt.isSuperAdmin], controller.DeleteUserBySuperAdmin);
+
+
+    app.post("/api/bulk/update/users", [jwt.verifyToken, jwt.isAdmin], controller.BulkUpdate);
+
+    app.post("/api/bulk/create/users", [jwt.verifyToken, jwt.isAdmin], controller.BulkCreate);
+
+    app.post("/api/bulk/get/users", [jwt.verifyToken, jwt.isAdmin], controller.BulkGetUsers);
 };

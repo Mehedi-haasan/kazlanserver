@@ -47,6 +47,22 @@ exports.getCategoryAll = async (req, res) => {
     }
 }
 
+exports.GetSingleCategory = async (req, res) => {
+
+    try {
+        let data = await Category.findOne({
+            where: { id: req.params.id, active: true },
+        })
+        return res.status(200).send({
+            success: true,
+            items: data
+        })
+
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+}
+
 
 
 exports.getCategoryByProduct = async (req, res) => {
@@ -129,7 +145,7 @@ exports.CreateCategory = async (req, res) => {
 
 exports.updateCategory = async (req, res) => {
     try {
-        const { id, name, image_url, url } = req.body;
+        const { id, name, image_url } = req.body;
 
         if (!id) {
             return res.status(400).send({
@@ -149,9 +165,6 @@ exports.updateCategory = async (req, res) => {
                 success: false,
                 message: "Order not found or status is already the same."
             });
-        }
-        if (url) {
-            deletePhoto(url)
         }
         return res.status(200).send({
             success: true,

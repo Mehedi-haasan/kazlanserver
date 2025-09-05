@@ -6,6 +6,7 @@ exports.getState = async (req, res) => {
 
     try {
         let data = await State.findAll({
+            where: { active: true },
             attributes: ['id', 'name'],
         })
         return res.status(200).send({

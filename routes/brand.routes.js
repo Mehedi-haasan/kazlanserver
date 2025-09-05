@@ -14,6 +14,7 @@ module.exports = function (app) {
     app.get("/api/get/brand/:page/:pageSize", jwt.verifyToken, controller.getBrandWithPage);
     app.get("/api/get/brand/filter/search/:name", jwt.verifyToken, controller.searchBrand);
     app.get("/api/get/brand", jwt.verifyToken, controller.getBrandAll);
+    app.get("/api/get/single/brand/:id", jwt.verifyToken, controller.GetSingleBrand);
     app.patch("/api/update/brand", [jwt.verifyToken, jwt.isAdmin], controller.updateBrand);
     app.post("/api/delete/brand", [jwt.verifyToken, jwt.isAdmin], controller.DeleteBrand);
 
