@@ -37,6 +37,122 @@ exports.getAllOrder = async (req, res) => {
     }
 }
 
+function getFormattedDate() {
+    const date = new Date();
+    const options = { day: 'numeric', month: 'long', year: 'numeric' };
+    return date.toLocaleDateString('en-EN', options);
+}
+
+exports.getExpense = async (req, res) => {
+    let date = getFormattedDate()
+    try {
+        let data = await Invoice.findAll({
+            where: {
+                active: true,
+                date: date,
+                compId: req.compId
+            }
+        });
+        let grand_total = 0
+
+        let groupByData = data.reduce((acc, item) => {
+            grand_total += Math.abs(item.paidamount);
+            let existingGroup = acc.find(g => g.name === item.type);
+            if (existingGroup) {
+                existingGroup.total += Math.abs(item.paidamount);
+                existingGroup.paidamount += Math.abs(item.paidamount);
+                existingGroup.items.push(item);
+            } else {
+                acc.push({
+                    name: item.type,
+                    total: item.paidamount,
+                    paidamount:item.paidamount,
+                    items: [item]
+                });
+            }
+            return acc;
+        }, []);
+
+        let pre_final = {
+            name: "Income",
+            total: 0,
+            paidamount:0,
+            items: []
+        };
+
+        // Fill pre_final.items
+        groupByData.forEach((data) => {
+            pre_final.total += data.paidamount;
+            pre_final.paidamount += data.paidamount;
+            pre_final.items.push({
+                customername: data.name,
+                type: "Sale",
+                id: 1,
+                total: data.paidamount,
+                paidamount:data.paidamount
+            });
+        });
+
+        let final_data = [pre_final];
+
+        // Add all groupByData after pre_final
+        groupByData.forEach((data) => {
+            final_data.push(data);
+        });
+
+
+
+        return res.status(200).send({
+            success: true,
+            items: final_data,
+            grand_total: grand_total
+        });
+
+    } catch (error) {
+        return res.status(500).send({ success: false, message: error.message });
+    }
+};
+
+
+exports.CreateExpense = async (req, res) => {
+
+    try {
+        let data = await Invoice.create({
+            date: getFormattedDate(),
+            compId: req?.compId,
+            shopname: req.body.shopname,
+            createdby: req.userId,
+            creator: req?.user,
+            userId: 1,
+            total: req.body.paid,
+            paymentmethod: "",
+            methodname: `${req.body.expensename}/${req.body.note}`,
+            packing: 0,
+            delivery: 0,
+            lastdiscount: 0,
+            customername: `${req.body.expensename}`,
+            previousdue: 0,
+            paidamount: req.body.paid,
+            due: 0,
+            status: "Paid",
+            type: "Expense",
+            deliverydate: getFormattedDate(),
+            balance: req.body.paid
+        })
+
+
+        return res.status(200).send({
+            success: true,
+            items: data,
+            message: "Expense Upload Succesfully"
+        });
+
+    } catch (error) {
+        return res.status(500).send({ success: false, message: error.message });
+    }
+};
+
+
 exports.getOrder = async (req, res) => {
 
     try {
@@ -199,8 +315,8 @@ exports.getOrderInvo = async (req, res) => {
             nextInvo: nextInvo,
             prevInvo: prevInvo,
             lastInvo: lastInvo,
-            state:state,
-            user:user
+            state: state,
+            user: user
         })
 
     } catch (error) {

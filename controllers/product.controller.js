@@ -344,7 +344,8 @@ exports.BulkUpdate = async (req, res) => {
 
 exports.BulkGetProduct = async (req, res) => {
   try {
-    const pageSize = parseInt(req.params.pageSize) || 10;
+    const page = parseInt(req.params.page);
+    const pageSize = parseInt(req.params.pageSize);
     const offset = (page - 1) * pageSize;
 
     let allProduct = await Product.findAll({

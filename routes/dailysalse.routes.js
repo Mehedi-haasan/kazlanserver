@@ -24,4 +24,7 @@ module.exports = function (app) {
 
     app.post('/api/get/user/recent/order/from/to/:page/:pageSize', jwt.verifyToken, controller.OrderFromTo);
 
+    app.post('/api/get/expense', jwt.verifyToken, controller.getExpense);
+    app.post('/api/post/expense', jwt.verifyToken, controller.CreateExpense);
+
 }    
