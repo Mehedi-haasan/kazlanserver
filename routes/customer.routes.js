@@ -20,7 +20,7 @@ module.exports = function (app) {
     app.get("/api/get/suppliers/:stateId", [jwt.verifyToken], controller.GetSupplierWithState);
 
 
-
+    app.post("/api/search/customers", [jwt.verifyToken], controller.SearchCustomer);
 
 
     app.post("/api/update/customer/balance/:id/:type", [jwt.verifyToken, jwt.isAdmin], controller.UpdateCustomerBalance);

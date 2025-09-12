@@ -10,8 +10,8 @@ module.exports = function (app) {
     })
 
     app.get('/api/get/order', jwt.verifyToken, controller.getAllOrder);
-    app.get('/api/get/order/:id', jwt.verifyToken, controller.getOrder);
-    app.get('/api/get/invo/order/:id', jwt.verifyToken, controller.getOrderInvo);
+    app.get('/api/get/order/:id/:type', jwt.verifyToken, controller.getOrder);
+    app.get('/api/get/invo/order/:id/:type', jwt.verifyToken, controller.getOrderInvo);
 
 
     app.get('/api/get/order/daily/salse', jwt.verifyToken, controller.getDailySalse);

@@ -392,6 +392,38 @@ exports.BulkUpdate = async (req, res) => {
     }
 };
 
+exports.YearlyBonus = async (req, res) => {
+    try {
+        const { id, paid } = req.body;
+        let user = await User.findOne({
+            where: {
+                id: id
+            }
+        })
+
+        if (!user) {
+            return res.status(404).json({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        user.balance = user.balance - paid;
+        await user.save();
+
+        return res.status(200).json({
+            success: true,
+            message: ""
+        });
+
+    } catch (error) {
+        return res.status(500).json({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
 
 
 exports.BulkGetUsers = async (req, res) => {

@@ -49,6 +49,26 @@ exports.GetSupplierWithState = async (req, res) => {
     }
 }
 
+exports.SearchCustomer = async (req, res) => {
+    try {
+        let data = await db.customer.findAll({
+            where: {
+                active: true,
+                compId: req.compId,
+                name: { [Op.like]: `%${req.body.name}%` },
+                usertype: req.body.type
+            }
+        })
+        return res.status(200).send({
+            success: true,
+            items: data
+        })
+
+    } catch (error) {
+        return res.status(500).send({ success: false, message: error.message });
+    }
+}
+
 exports.GetCustomerWithPage = async (req, res) => {
     const page = parseInt(req.params.page) || 1;
     const pageSize = parseInt(req.params.pageSize) || 10;
@@ -226,7 +246,7 @@ exports.CreateCustomer = async (req, res) => {
             userId: data?.id,
             total: userBalance,
             paymentmethod: "",
-            methodname: `${usertype} Create`,
+            methodname: `Online`,
             packing: 0,
             delivery: 0,
             lastdiscount: 0,
@@ -234,10 +254,12 @@ exports.CreateCustomer = async (req, res) => {
             previousdue: 0,
             paidamount: 0,
             due: 0,
-            status: customertype,
+            status: "Online",
             type: "Opening",
             deliverydate: getFormattedDate(),
-            balance: userBalance
+            balance: userBalance,
+            special_discount: 0,
+            sup_invo: ''
         });
         return res.status(200).send({
             success: true,
@@ -302,7 +324,7 @@ exports.UpdateCustomer = async (req, res) => {
     }
 };
 
-exports. UpdateCustomerBalance = async (req, res) => {
+exports.UpdateCustomerBalance = async (req, res) => {
 
     try {
         let customer = await db.customer.findOne({
@@ -322,6 +344,7 @@ exports. UpdateCustomerBalance = async (req, res) => {
         } else if (req?.params?.type === "2") {
             curent = customer?.balance - parseInt(req.body.paid)
         }
+        console.log(req.body.status);
 
         const Invoice = await db.invoice.create({
             date: getFormattedDate(),
@@ -340,10 +363,12 @@ exports. UpdateCustomerBalance = async (req, res) => {
             previousdue: curent,
             paidamount: parseInt(req.body.paid),
             due: 0,
-            status: "Paid",
-            type: `${req.body.type} by ${req.body.methodname}`,
+            status: req.body.status,
+            type: req.body.type,
             deliverydate: getFormattedDate(),
-            balance: curent
+            balance: curent,
+            special_discount: 0,
+            sup_invo: ''
         });
 
         if (req?.params?.type === "1") {

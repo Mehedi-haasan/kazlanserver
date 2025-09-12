@@ -20,6 +20,8 @@ module.exports = function (app) {
 
     app.post('/api/update/order', jwt.verifyToken, controller.UpdateOrder);
 
+    app.get('/api/search/data/:name', jwt.verifyToken, controller.SearchOrder);
+
 
     app.get('/api/get/offline/data', jwt.verifyToken, controller.GetOfflineData);
     app.post('/api/postget/offline/data', jwt.verifyToken, controller.OfflineToOnline)

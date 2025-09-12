@@ -15,6 +15,8 @@ module.exports = function (app) {
     app.get("/api/get/users/with/role/:page/:pageSize", [jwt.verifyToken], controller.getUsersWithRole);
     app.get("/api/get/users/:stateId", [jwt.verifyToken], controller.getUsersbyState);
 
+    app.post("/api/users/yearly/bonus", [jwt.verifyToken, jwt.isAdmin], controller.YearlyBonus);
+
 
     app.get("/api/get/single/users", [jwt.verifyToken], controller.getSingleUsers);
     app.patch("/api/update/single/users", [jwt.verifyToken], controller.updateUsers);

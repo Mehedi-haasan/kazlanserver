@@ -86,7 +86,7 @@ exports.getExpense = async (req, res) => {
             pre_final.paidamount += data.paidamount;
             pre_final.items.push({
                 customername: data.name,
-                type: "Sale",
+                type: "Expense",
                 id: 1,
                 total: data.paidamount,
                 paidamount:data.paidamount
@@ -134,7 +134,7 @@ exports.CreateExpense = async (req, res) => {
             previousdue: 0,
             paidamount: req.body.paid,
             due: 0,
-            status: "Paid",
+            status: "Online",
             type: "Expense",
             deliverydate: getFormattedDate(),
             balance: req.body.paid
@@ -184,6 +184,7 @@ exports.getOrder = async (req, res) => {
 
         const nextInvo = await Invoice.findOne({
             where: {
+                type:req.params.type,
                 id: { [Op.gt]: req.params.id },
                 compId: req?.compId,
                 active: true,
@@ -193,6 +194,7 @@ exports.getOrder = async (req, res) => {
 
         const prevInvo = await Invoice.findOne({
             where: {
+                type:req.params.type,
                 id: { [Op.lt]: req.params.id },
                 compId: req?.compId,
                 active: true,
@@ -203,6 +205,7 @@ exports.getOrder = async (req, res) => {
 
         const lastInvo = await Invoice.findOne({
             where: {
+                type:req.params.type,
                 compId: req?.compId,
                 active: true,
             },
@@ -267,6 +270,7 @@ exports.getOrderInvo = async (req, res) => {
 
         const nextInvo = await Invoice.findOne({
             where: {
+                type:req.params.type,
                 id: { [Op.gt]: req.params.id },
                 compId: req?.compId,
                 active: true,
@@ -276,6 +280,7 @@ exports.getOrderInvo = async (req, res) => {
 
         const prevInvo = await Invoice.findOne({
             where: {
+                type:req.params.type,
                 id: { [Op.lt]: req.params.id },
                 compId: req?.compId,
                 active: true,
@@ -286,6 +291,7 @@ exports.getOrderInvo = async (req, res) => {
 
         const lastInvo = await Invoice.findOne({
             where: {
+                type:req.params.type,
                 compId: req?.compId,
                 active: true,
             },

@@ -5,6 +5,7 @@ const Product = db.product;
 const Notification = db.notification;
 const Invoice = db.invoice;
 const sequelize = db.sequelize;
+const { Op } = require("sequelize");
 
 
 
@@ -12,7 +13,7 @@ const sequelize = db.sequelize;
 exports.CreateOrder = async (req, res) => {
 
     const { shop, customername, orders, userId, amount, lastdiscount, pay_type, methodname,
-        previousdue, paidamount, date, packing, delivery, total, deliverydate, paymentmethod } = req.body;
+        previousdue, paidamount, date, packing, delivery, total, deliverydate, paymentmethod, sup_invo, special_discount } = req.body;
 
     let transaction;
 
@@ -41,7 +42,9 @@ exports.CreateOrder = async (req, res) => {
             status: pay_type,
             type: "Sale",
             deliverydate: deliverydate,
-            balance: parseInt(user?.balance) + parseInt(amount)
+            balance: parseInt(user?.balance) + parseInt(amount),
+            special_discount: special_discount,
+            sup_invo: sup_invo
         });
         if (!invoice || !invoice.id) {
             return res.status(400).send({ success: false, message: "Failed to create invoice" });
@@ -86,7 +89,7 @@ exports.CreateOrder = async (req, res) => {
 exports.ReturnOrder = async (req, res) => {
 
     const { shop, customername, orders, userId, lastdiscount, date, packing,
-        delivery, total, deliverydate, pay_type, paymentmethod, methodname } = req.body;
+        delivery, total, deliverydate, pay_type, paymentmethod, methodname, sup_invo, special_discount } = req.body;
 
     let transaction;
 
@@ -116,7 +119,9 @@ exports.ReturnOrder = async (req, res) => {
             status: pay_type,
             type: "Sale Return",
             deliverydate: deliverydate,
-            balance: parseInt(user?.balance) - parseInt(total)
+            balance: parseInt(user?.balance) - parseInt(total),
+            special_discount: special_discount,
+            sup_invo: sup_invo
         });
         if (!invoice || !invoice.id) {
             return res.status(400).send({ success: false, message: "Failed to create invoice" });
@@ -235,7 +240,7 @@ exports.UpdateOrder = async (req, res) => {
 exports.ReturnPurchase = async (req, res) => {
 
     const { shop, customername, orders, userId, amount, lastdiscount, pay_type, methodname,
-        previousdue, paidamount, date, packing, delivery, total, deliverydate, paymentmethod } = req.body;
+        previousdue, paidamount, date, packing, delivery, total, deliverydate, paymentmethod, sup_invo, special_discount } = req.body;
 
     let transaction;
 
@@ -264,7 +269,9 @@ exports.ReturnPurchase = async (req, res) => {
             status: pay_type,
             type: "Return Purchase",
             deliverydate: deliverydate,
-            balance: parseInt(user?.balance) + parseInt(amount)
+            balance: parseInt(user?.balance) + parseInt(amount),
+            special_discount: special_discount,
+            sup_invo: sup_invo
         });
         if (!invoice || !invoice.id) {
             return res.status(400).send({ success: false, message: "Failed to create invoice" });
@@ -316,7 +323,7 @@ exports.ReturnPurchase = async (req, res) => {
 exports.PurchaseProduct = async (req, res) => {
 
     const { shop, customername, orders, userId, amount, lastdiscount, pay_type, paymentmethod, methodname,
-        previousdue, paidamount, date, packing, delivery, total, deliverydate, updatedata } = req.body;
+        previousdue, paidamount, date, packing, delivery, total, deliverydate, updatedata, sup_invo, special_discount } = req.body;
 
     let transaction;
 
@@ -346,7 +353,9 @@ exports.PurchaseProduct = async (req, res) => {
             status: pay_type,
             type: "Purchase items",
             deliverydate: deliverydate,
-            balance: parseInt(user?.balance) - parseInt(amount)
+            balance: parseInt(user?.balance) - parseInt(amount),
+            special_discount: special_discount,
+            sup_invo: sup_invo
         });
         if (!invoice || !invoice.id) {
             return res.status(400).send({ success: false, message: "Failed to create invoice" });
@@ -401,6 +410,45 @@ exports.PurchaseProduct = async (req, res) => {
         res.status(500).send({ success: false, message: error.message });
     }
 }
+
+
+
+exports.SearchOrder = async (req, res) => {
+    try {
+        const { name } = req.params;
+
+        const whereClause = {
+            compId: req?.compId,
+            active: true,
+        };
+
+        if (name) {
+            if (!isNaN(search)) {
+                whereClause[Op.or] = [
+                    { id: { [Op.like]: `%${name}%` } }, // exact match
+                    { customername: { [Op.like]: `%${name}%` } },
+                ];
+            } else {
+                whereClause.name = { [Op.like]: `%${name}%` };
+            }
+        }
+
+        const data = await Invoice.findAll({
+            where: whereClause,
+        });
+
+        return res.status(200).send({
+            success: true,
+            items: data,
+        });
+    } catch (error) {
+        return res.status(500).send({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
 
 
 
