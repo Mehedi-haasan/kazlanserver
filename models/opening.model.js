@@ -1,5 +1,5 @@
 module.exports = (sequelize, Sequelize) => {
-    const Attribute = sequelize.define("attribute", {
+    const Opening = sequelize.define("opening", {
         id: {
             type: Sequelize.INTEGER,
             primaryKey: true,
@@ -8,11 +8,15 @@ module.exports = (sequelize, Sequelize) => {
         active: {
             type: Sequelize.BOOLEAN,
         },
-        attr_type_id: {
-            type: Sequelize.INTEGER
-        },
-        name: {
+        type: {
             type: Sequelize.STRING
+        },
+        date: {
+            type: Sequelize.STRING
+        },
+        amount: {
+            type: Sequelize.INTEGER,
+            defaultValue: 0
         },
         compId: {
             type: Sequelize.INTEGER
@@ -25,7 +29,7 @@ module.exports = (sequelize, Sequelize) => {
         }
     }, { charset: 'utf8mb4', collate: 'utf8mb4_unicode_ci' });
 
-    return Attribute;
+    return Opening;
 };
 
 

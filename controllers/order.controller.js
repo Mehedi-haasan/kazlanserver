@@ -10,9 +10,10 @@ const { Op } = require("sequelize");
 
 
 
+
 exports.CreateOrder = async (req, res) => {
 
-    const { shop, customername, orders, userId, amount, lastdiscount, pay_type, methodname,
+    const { shop, customername, orders, userId, amount, lastdiscount, pay_type, methodname, status,
         previousdue, paidamount, date, packing, delivery, total, deliverydate, paymentmethod, sup_invo, special_discount } = req.body;
 
     let transaction;
@@ -39,7 +40,7 @@ exports.CreateOrder = async (req, res) => {
             previousdue: previousdue,
             paidamount: paidamount,
             due: total - paidamount,
-            status: pay_type,
+            status: status,
             type: "Sale",
             deliverydate: deliverydate,
             balance: parseInt(user?.balance) + parseInt(amount),
@@ -88,7 +89,7 @@ exports.CreateOrder = async (req, res) => {
 
 exports.ReturnOrder = async (req, res) => {
 
-    const { shop, customername, orders, userId, lastdiscount, date, packing,
+    const { shop, customername, orders, userId, lastdiscount, date, packing, status, paidamount,amount,
         delivery, total, deliverydate, pay_type, paymentmethod, methodname, sup_invo, special_discount } = req.body;
 
     let transaction;
@@ -113,10 +114,10 @@ exports.ReturnOrder = async (req, res) => {
             lastdiscount: lastdiscount,
             customername: customername,
             previousdue: user?.balance,
-            paidamount: total,
+            paidamount: paidamount,
             return: total,
             due: 0,
-            status: pay_type,
+            status: status,
             type: "Sale Return",
             deliverydate: deliverydate,
             balance: parseInt(user?.balance) - parseInt(total),
@@ -145,8 +146,9 @@ exports.ReturnOrder = async (req, res) => {
             }
         }
 
+        let user_balance = total - paidamount
 
-        if (user) { await Customer.update({ balance: user.balance - total }, { where: { id: userId } }); }
+        if (user) { await Customer.update({ balance: user.balance - amount }, { where: { id: userId } }); }
 
         await transaction.commit();
         return res.status(200).send({
@@ -239,7 +241,7 @@ exports.UpdateOrder = async (req, res) => {
 
 exports.ReturnPurchase = async (req, res) => {
 
-    const { shop, customername, orders, userId, amount, lastdiscount, pay_type, methodname,
+    const { shop, customername, orders, userId, amount, lastdiscount, pay_type, methodname, status,
         previousdue, paidamount, date, packing, delivery, total, deliverydate, paymentmethod, sup_invo, special_discount } = req.body;
 
     let transaction;
@@ -263,10 +265,10 @@ exports.ReturnPurchase = async (req, res) => {
             lastdiscount: lastdiscount,
             customername: customername,
             previousdue: previousdue,
-            paidamount: total,
+            paidamount: paidamount,
             return: total,
             due: 0,
-            status: pay_type,
+            status: status,
             type: "Return Purchase",
             deliverydate: deliverydate,
             balance: parseInt(user?.balance) + parseInt(amount),
@@ -322,7 +324,7 @@ exports.ReturnPurchase = async (req, res) => {
 
 exports.PurchaseProduct = async (req, res) => {
 
-    const { shop, customername, orders, userId, amount, lastdiscount, pay_type, paymentmethod, methodname,
+    const { shop, customername, orders, userId, amount, lastdiscount, pay_type, paymentmethod, methodname, status,
         previousdue, paidamount, date, packing, delivery, total, deliverydate, updatedata, sup_invo, special_discount } = req.body;
 
     let transaction;
@@ -350,7 +352,7 @@ exports.PurchaseProduct = async (req, res) => {
             previousdue: user?.balance,
             paidamount: paidamount,
             due: total - paidamount,
-            status: pay_type,
+            status: status,
             type: "Purchase items",
             deliverydate: deliverydate,
             balance: parseInt(user?.balance) - parseInt(amount),
@@ -469,7 +471,7 @@ exports.OfflineToOnline = async (req, res) => {
                 creator: req?.user,
                 userId: item?.userId,
                 total: item?.total,
-                methodname: "Offline",
+                methodname: item?.methodname,
                 paymentmethod: item?.paymentmethod,
                 packing: item?.packing,
                 delivery: item?.delivery,
@@ -479,6 +481,8 @@ exports.OfflineToOnline = async (req, res) => {
                 paidamount: item?.total,
                 due: item?.due,
                 status: item?.status,
+                is_edit: false,
+                order_type:"Offline",
                 type: item?.type,
                 deliverydate: item?.deliverydate
             });

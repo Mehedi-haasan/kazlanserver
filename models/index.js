@@ -35,7 +35,10 @@ db.notification = require("./notification.model")(sequelize, Sequelize);
 db.invoice = require("./invoice.model")(sequelize, Sequelize);
 db.brand = require("./brand.model")(sequelize, Sequelize);
 db.customer = require("./customer.model")(sequelize, Sequelize);
+db.attributetype = require("./attributetype.model")(sequelize, Sequelize);
 db.attribute = require("./attribute.model")(sequelize, Sequelize);
+db.attributevalue = require("./attributevalue.model")(sequelize, Sequelize);
+db.opening = require("./opening.model")(sequelize, Sequelize);
 
 // Sale Order Relationship
 db.product.hasMany(db.saleorder, {
@@ -132,6 +135,25 @@ db.state.hasMany(db.customer, {
 });
 db.customer.belongsTo(db.state, {
   foreignKey: "stateId",
+  onDelete: 'CASCADE',
+});
+
+db.attributetype.hasMany(db.attribute, {
+  foreignKey: "attr_type_id",
+  onDelete: 'CASCADE',
+});
+db.attribute.belongsTo(db.attributetype, {
+  foreignKey: "attr_type_id",
+  onDelete: 'CASCADE',
+});
+
+
+db.attribute.hasMany(db.attributevalue, {
+  foreignKey: "attr_id",
+  onDelete: 'CASCADE',
+});
+db.attributevalue.belongsTo(db.attribute, {
+  foreignKey: "attr_id",
   onDelete: 'CASCADE',
 });
 

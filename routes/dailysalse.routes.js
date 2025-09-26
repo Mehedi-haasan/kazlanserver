@@ -14,7 +14,7 @@ module.exports = function (app) {
     app.get('/api/get/invo/order/:id/:type', jwt.verifyToken, controller.getOrderInvo);
 
 
-    app.get('/api/get/order/daily/salse', jwt.verifyToken, controller.getDailySalse);
+    app.get('/api/get/order/daily/salse/test', jwt.verifyToken, controller.getDailySalse);
     app.get('/api/get/order/daily/salse/return/pruchase', jwt.verifyToken, controller.getDailySalseReturnPurchase);
     app.get('/api/get/user/order/monthly', jwt.verifyToken, controller.getMonthlyOrder);
 
@@ -26,5 +26,9 @@ module.exports = function (app) {
 
     app.post('/api/get/expense', jwt.verifyToken, controller.getExpense);
     app.post('/api/post/expense', jwt.verifyToken, controller.CreateExpense);
+
+
+    app.post('/api/post/opening/balance', jwt.verifyToken, controller.OpeningBalance);
+    app.get('/api/get/opening/balance', jwt.verifyToken, controller.GetOpeningBalance);
 
 }    

@@ -4,7 +4,7 @@ const Customer = db.customer;
 const Product = db.product;
 const Invoice = db.invoice;
 const Op = db.Sequelize.Op;
-const { fn, col } = require("sequelize");
+const { fn, col, where } = require("sequelize");
 // const { Op } = require('sequelize');
 
 
@@ -49,63 +49,187 @@ exports.getExpense = async (req, res) => {
         let data = await Invoice.findAll({
             where: {
                 active: true,
-                date: date,
+                date: req.body.date,
                 compId: req.compId
             }
         });
-        let grand_total = 0
-
-        let groupByData = data.reduce((acc, item) => {
-            grand_total += Math.abs(item.paidamount);
-            let existingGroup = acc.find(g => g.name === item.type);
-            if (existingGroup) {
-                existingGroup.total += Math.abs(item.paidamount);
-                existingGroup.paidamount += Math.abs(item.paidamount);
-                existingGroup.items.push(item);
-            } else {
-                acc.push({
-                    name: item.type,
-                    total: item.paidamount,
-                    paidamount:item.paidamount,
-                    items: [item]
-                });
+        let opening = await db.opening.findOne({
+            where: {
+                active: true,
+                date: req.body.date,
+                compId: req.compId
             }
-            return acc;
-        }, []);
+        })
+        let grand_total = 0
+        let hand_cash = 0
+
+        const allSales = data?.filter(item => item.type === "Sale");
+        const pur_Expense = data?.filter(item => item.type === "Expense");
+        const paidSale = data?.filter(item => item.type === "Sale" && item.paidamount > 0);
+        const party_collections = data?.filter(item => item.type === "Make Payment");
+        const sale_return = data?.filter(item => item.type === "Sale Return");
+        const onli_col = data?.filter(item => item.type === "Online Collection");
+
 
         let pre_final = {
             name: "Income",
             total: 0,
-            paidamount:0,
-            items: []
+            paidamount: 0,
+            items: [{
+                customername: "Opening Sale",
+                type: "Income",
+                id: 0,
+                total: opening?.amount || 0,
+                paidamount: opening?.amount || 0
+            }]
         };
 
-        // Fill pre_final.items
-        groupByData.forEach((data) => {
-            pre_final.total += data.paidamount;
-            pre_final.paidamount += data.paidamount;
-            pre_final.items.push({
-                customername: data.name,
-                type: "Expense",
-                id: 1,
-                total: data.paidamount,
-                paidamount:data.paidamount
-            });
+        let cash_sale = {
+            customername: "Cash Sale",
+            type: "Income",
+            id: 0,
+            total: 0,
+            paidamount: 0
+        }
+        paidSale?.forEach((item) => {
+            cash_sale.total += item?.total ?? 0;
+            cash_sale.paidamount += item?.paidamount ?? 0;
+        });
+        pre_final.items.push({
+            customername: "Cash Sale",
+            type: "Income",
+            id: 0,
+            total: cash_sale?.total,
+            paidamount: cash_sale?.paidamount
+        });
+
+
+        let party_col = {
+            name: "Party Collections",
+            total: 0,
+            paidamount: 0,
+            items: party_collections
+        };
+        party_collections?.forEach((item) => {
+            party_col.total += item?.total ?? 0;
+            party_col.paidamount += item?.paidamount ?? 0;
+        });
+        pre_final.items.push({
+            customername: "Cash Collections",
+            type: "Income",
+            id: 0,
+            total: party_col?.total,
+            paidamount: party_col?.paidamount
+        });
+
+
+
+
+
+        let online_collection = {
+            name: "Online Collections",
+            total: 0,
+            paidamount: 0,
+            items: onli_col
+        };
+        onli_col?.forEach((item) => {
+            online_collection.total += item?.total ?? 0;
+            online_collection.paidamount += item?.paidamount ?? 0;
+        });
+        pre_final.items.push({
+            customername: "Online Colection",
+            type: "Income",
+            id: 0,
+            total: online_collection?.total,
+            paidamount: online_collection?.paidamount
+        });
+
+
+
+
+        let party_ret = {
+            name: "Party Return",
+            total: 0,
+            paidamount: 0,
+            items: sale_return
+        };
+        sale_return?.forEach((item) => {
+            party_ret.total += item?.total ?? 0;
+            party_ret.paidamount += item?.paidamount ?? 0;
+        });
+        let total_income = 0
+        pre_final?.items?.forEach((item) => {
+            pre_final.total += item?.total ?? 0;
+            pre_final.paidamount += item?.paidamount ?? 0;
+            total_income += item?.paidamount ?? 0;
         });
 
         let final_data = [pre_final];
 
-        // Add all groupByData after pre_final
-        groupByData.forEach((data) => {
-            final_data.push(data);
+
+
+        // Expense
+        let total_expense = 0
+        let ex_list = pur_Expense?.map(item => ({
+            id: item?.id,
+            type: item?.type,
+            customername: `${item?.customername}, ${item?.methodname}, ${item?.note}`,
+            total: item?.total,
+            paidamount: item?.paidamount
+        }));
+        let expense = {
+            name: "Expense",
+            total: 0,
+            paidamount: 0,
+            items: ex_list
+        };
+        pur_Expense?.forEach((item) => {
+            expense.total += item?.total ?? 0;
+            expense.paidamount += item?.paidamount ?? 0;
+            total_expense += item.total
         });
+        final_data.push(expense)
+
+        // Part Collections
+        final_data.push(party_col)
+        hand_cash += party_col?.total
+
+
+        // Party Sales
+        let party_sale = {
+            name: "Party Sales",
+            total: 0,
+            paidamount: 0,
+            items: allSales
+        };
+        allSales?.forEach((item) => {
+            party_sale.total += item?.total ?? 0;
+            party_sale.paidamount += item?.paidamount ?? 0;
+        });
+        final_data.push(party_sale)
+        hand_cash += party_sale?.total
+
+        // Online Collections
+        final_data.push(online_collection)
+        hand_cash += online_collection?.total
+
+
+        // Party Return
+        final_data.push(party_ret)
+        hand_cash += party_ret?.total
 
 
 
         return res.status(200).send({
             success: true,
-            items: final_data,
-            grand_total: grand_total
+            items: data,
+            final_data: final_data,
+            grand_total: grand_total,
+            hand_cash: total_income - total_expense,
+            party_col: party_col,
+            online_collection: online_collection,
+            party_ret: party_ret,
+            party_sale: party_sale
         });
 
     } catch (error) {
@@ -118,7 +242,7 @@ exports.CreateExpense = async (req, res) => {
 
     try {
         let data = await Invoice.create({
-            date: getFormattedDate(),
+            date: req.body.date,
             compId: req?.compId,
             shopname: req.body.shopname,
             createdby: req.userId,
@@ -126,7 +250,7 @@ exports.CreateExpense = async (req, res) => {
             userId: 1,
             total: req.body.paid,
             paymentmethod: "",
-            methodname: `${req.body.expensename}/${req.body.note}`,
+            methodname: req.body.methodname,
             packing: 0,
             delivery: 0,
             lastdiscount: 0,
@@ -137,7 +261,8 @@ exports.CreateExpense = async (req, res) => {
             status: "Online",
             type: "Expense",
             deliverydate: getFormattedDate(),
-            balance: req.body.paid
+            balance: req.body.paid,
+            note: req.body.note
         })
 
 
@@ -145,6 +270,62 @@ exports.CreateExpense = async (req, res) => {
             success: true,
             items: data,
             message: "Expense Upload Succesfully"
+        });
+
+    } catch (error) {
+        return res.status(500).send({ success: false, message: error.message });
+    }
+};
+
+exports.OpeningBalance = async (req, res) => {
+    try {
+        let payload = {
+            date: req.body.date,
+            compId: req?.compId,
+            createdby: req.userId,
+            creator: req?.user,
+            amount: req.body.amount,
+            type: "Opening",
+            active: true
+        };
+
+        let data;
+        if (req.body.id) {
+            // Update
+            await db.opening.update(payload, {
+                where: { id: req.body.id, compId: req?.compId }
+            });
+            data = await db.opening.findOne({ where: { id: req.body.id, compId: req?.compId } });
+        } else {
+            // Create
+            data = await db.opening.create(payload);
+        }
+
+        return res.status(200).send({
+            success: true,
+            items: data,
+            message: req.body.id ? "Opening updated successfully" : "Opening created successfully"
+        });
+
+    } catch (error) {
+        return res.status(500).send({ success: false, message: error.message });
+    }
+};
+
+exports.GetOpeningBalance = async (req, res) => {
+    try {
+        let data = await db.opening.findAll({
+            where: {
+                active: true,
+                compId: req?.compId
+            },
+            limit: 15
+        })
+
+        return res.status(200).send({
+            success: true,
+            items: data,
+            message: req.body.id ? "Opening updated successfully" : "Opening created successfully"
         });
 
     } catch (error) {
@@ -184,7 +365,7 @@ exports.getOrder = async (req, res) => {
 
         const nextInvo = await Invoice.findOne({
             where: {
-                type:req.params.type,
+                type: req.params.type,
                 id: { [Op.gt]: req.params.id },
                 compId: req?.compId,
                 active: true,
@@ -194,7 +375,7 @@ exports.getOrder = async (req, res) => {
 
         const prevInvo = await Invoice.findOne({
             where: {
-                type:req.params.type,
+                type: req.params.type,
                 id: { [Op.lt]: req.params.id },
                 compId: req?.compId,
                 active: true,
@@ -205,7 +386,7 @@ exports.getOrder = async (req, res) => {
 
         const lastInvo = await Invoice.findOne({
             where: {
-                type:req.params.type,
+                type: req.params.type,
                 compId: req?.compId,
                 active: true,
             },
@@ -270,7 +451,7 @@ exports.getOrderInvo = async (req, res) => {
 
         const nextInvo = await Invoice.findOne({
             where: {
-                type:req.params.type,
+                type: req.params.type,
                 id: { [Op.gt]: req.params.id },
                 compId: req?.compId,
                 active: true,
@@ -280,7 +461,7 @@ exports.getOrderInvo = async (req, res) => {
 
         const prevInvo = await Invoice.findOne({
             where: {
-                type:req.params.type,
+                type: req.params.type,
                 id: { [Op.lt]: req.params.id },
                 compId: req?.compId,
                 active: true,
@@ -291,7 +472,7 @@ exports.getOrderInvo = async (req, res) => {
 
         const lastInvo = await Invoice.findOne({
             where: {
-                type:req.params.type,
+                type: req.params.type,
                 compId: req?.compId,
                 active: true,
             },
@@ -364,11 +545,13 @@ exports.getDailySalse = async (req, res) => {
             limit: 300,
             order: [["createdAt", "DESC"]]
         })
+        const amount = data.reduce((sum, item) => sum + (item.paidamount || 0), 0);
         const calcutatedData = await groupSalesByHour(data);
 
         return res.status(200).send({
             success: true,
-            items: calcutatedData
+            items: calcutatedData,
+            amount:amount
         })
 
     } catch (error) {

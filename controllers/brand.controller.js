@@ -50,7 +50,8 @@ exports.getBrandWithPage = async (req, res) => {
         })
         const totalCount = await Brand.count({
             where: {
-                compId: req?.compId
+                compId: req?.compId,
+                active: true
             }
         });
 

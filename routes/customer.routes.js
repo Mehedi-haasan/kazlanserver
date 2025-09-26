@@ -22,6 +22,7 @@ module.exports = function (app) {
 
     app.post("/api/search/customers", [jwt.verifyToken], controller.SearchCustomer);
 
+    app.get("/api/search/due/customers/:due/:type", [jwt.verifyToken], controller.SearchDueCustomer);
 
     app.post("/api/update/customer/balance/:id/:type", [jwt.verifyToken, jwt.isAdmin], controller.UpdateCustomerBalance);
 

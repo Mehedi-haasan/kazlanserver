@@ -9,7 +9,8 @@ exports.getUsers = async (req, res) => {
     try {
         const data = await User.findAll({
             where: {
-                cretedby: req.userId
+                cretedby: req.userId,
+                active: true
             },
             attributes: ['id', 'name']
         });

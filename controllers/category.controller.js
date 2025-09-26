@@ -13,10 +13,11 @@ exports.getCategory = async (req, res) => {
         let data = await Category.findAll({
             limit: pageSize,
             where: { compId: req.compId, active: true },
-            offset: offset
+            offset: offset,
+            order: [['createdAt', 'DESC']],
         })
 
-        const totalCount = await Category.count({ where: { compId: req.compId } });
+        const totalCount = await Category.count({ where: { compId: req.compId, active: true } });
 
         return res.status(200).send({
             success: true,

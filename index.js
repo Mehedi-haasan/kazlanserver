@@ -44,7 +44,7 @@ require('./routes/attribute.routes')(app);
 
 const initStates = async () => {
     await db.state.create({
-        active:true,
+        active: true,
         name: "Madaripur Sadar",
     });
 
@@ -76,7 +76,7 @@ const initStates = async () => {
         name: 'admin'
     })
     await db.company.create({
-        active:true,
+        active: true,
         name: "Kazal and Brothers",
         image_url: "https://cdn-icons-png.flaticon.com/128/2202/2202112.png",
         description: "Description",
@@ -87,6 +87,56 @@ const initStates = async () => {
         footertext: "Copyright© Kazlandbrothers",
         creator: "Mahfuzur Rahman"
     })
+
+    await db.attributetype.create({
+        active: true,
+        type: "Edition",
+        name: "Edition",
+        compId: 1,
+        createdby: 1,
+        creator: "Mahfuzur Rahman"
+    });
+    await db.attributetype.create({
+        active: true,
+        type: "Quantity",
+        name: "Quantity",
+        compId: 1,
+        createdby: 1,
+        creator: "Mahfuzur Rahman"
+    });
+    await db.attributetype.create({
+        active: true,
+        type: "Payment Type",
+        name: "Payment Type",
+        compId: 1,
+        createdby: 1,
+        creator: "Mahfuzur Rahman"
+    });
+    await db.attributetype.create({
+        active: true,
+        type: "Expense",
+        name: "Expense",
+        compId: 1,
+        createdby: 1,
+        creator: "Mahfuzur Rahman"
+    });
+
+    await db.attribute.create({
+        active: true,
+        attr_type_id: 1,
+        name: "Edition",
+        compId: 1,
+        createdby: 1,
+        creator: "Mahfuzur Rahman"
+    });
+    await db.attribute.create({
+        active: true,
+        attr_type_id: 2,
+        name: "Quantity",
+        compId: 1,
+        createdby: 1,
+        creator: "Mahfuzur Rahman"
+    });
 }
 
 

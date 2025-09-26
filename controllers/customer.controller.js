@@ -69,6 +69,27 @@ exports.SearchCustomer = async (req, res) => {
     }
 }
 
+exports.SearchDueCustomer = async (req, res) => {
+    try {
+        let data = await db.customer.findAll({
+            where: {
+                active: true,
+                compId: req.compId,
+                balance: { [Op.lt]: req.params.due },
+                usertype: req.params.type
+            }
+        })
+        return res.status(200).send({
+            success: true,
+            items: data,
+            count: data?.length
+        })
+
+    } catch (error) {
+        return res.status(500).send({ success: false, message: error.message });
+    }
+}
+
 exports.GetCustomerWithPage = async (req, res) => {
     const page = parseInt(req.params.page) || 1;
     const pageSize = parseInt(req.params.pageSize) || 10;
@@ -254,7 +275,7 @@ exports.CreateCustomer = async (req, res) => {
             previousdue: 0,
             paidamount: 0,
             due: 0,
-            status: "Online",
+            status: "Paid",
             type: "Opening",
             deliverydate: getFormattedDate(),
             balance: userBalance,
@@ -344,10 +365,9 @@ exports.UpdateCustomerBalance = async (req, res) => {
         } else if (req?.params?.type === "2") {
             curent = customer?.balance - parseInt(req.body.paid)
         }
-        console.log(req.body.status);
 
         const Invoice = await db.invoice.create({
-            date: getFormattedDate(),
+            date: req.body.date,
             compId: req?.compId,
             shopname: req?.body?.shop,
             createdby: req.userId,

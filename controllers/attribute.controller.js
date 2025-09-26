@@ -2,11 +2,38 @@ const db = require("../models");
 const Attribute = db.attribute;
 const Op = db.Sequelize.Op;
 
-exports.getAttributrAll = async (req, res) => {
+
+
+exports.CreateAttributeType = async (req, res) => {
+
     try {
-        let data = await Attribute.findAll({
+        await db.attributetype.create({
+            active: true,
+            type: req.body.type,
+            name: req.body.name,
+            compId: req.compId,
+            createdby: req.userId,
+            creator: req.user
+        });
+
+        return res.status(200).send({
+            success: true,
+            message: "Attribute Type Created Successfully"
+        })
+
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+
+}
+
+exports.GetAttributeTypeAll = async (req, res) => {
+    try {
+        let data = await db.attributetype.findAll({
             attributes: ['id', 'name'],
-            where: { compId: req?.compId, active: true },
+            where: {
+                active: true
+            },
             order: [['createdAt', 'DESC']],
         })
         return res.status(200).send({
@@ -18,6 +45,111 @@ exports.getAttributrAll = async (req, res) => {
         res.status(500).send({ success: false, message: error.message });
     }
 }
+
+
+exports.CreateAttributeName = async (req, res) => {
+
+    try {
+
+        await Attribute.create({
+            active: true,
+            attr_type_id: req.body.attr_type_id,
+            name: req.body.name,
+            compId: req.compId,
+            createdby: req.userId,
+            creator: req.user
+        });
+
+        return res.status(200).send({
+            success: true,
+            message: "Attribute Created Successfully"
+        })
+
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+
+}
+
+exports.GetAttributeWithPage = async (req, res) => {
+    const page = parseInt(req.params.page) || 1;
+    const pageSize = parseInt(req.params.pageSize) || 10;
+    const offset = (page - 1) * pageSize;
+    try {
+        let data = await Attribute.findAll({
+            where: { active: true },
+            limit: pageSize,
+            offset: offset,
+            order: [['createdAt', 'DESC']],
+            include: [{
+                model: db.attributevalue,
+            }]
+        })
+        const totalCount = await Attribute.count({
+            where: {
+                active: true
+            }
+        });
+
+        return res.status(200).send({
+            success: true,
+            items: data,
+            count: totalCount
+        })
+
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+}
+
+exports.GetAttributeTree = async (req, res) => {
+    try {
+        let data = await db.attributetype.findAll({
+            where: { active: true },
+            order: [['createdAt', 'DESC']],
+            include: [
+                {
+                    model: db.attribute,
+                    attributes: ['id', 'name'],
+                    include: [
+                        {
+                            model: db.attributevalue,
+                            attributes: ['id', 'name']
+                        }
+                    ]
+                }
+            ]
+        })
+        return res.status(200).send({
+            success: true,
+            items: data
+        })
+
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+}
+
+exports.GetAttributeAll = async (req, res) => {
+    try {
+        let data = await Attribute.findAll({
+            attributes: ['id', 'name'],
+            where: { active: true },
+            order: [
+                ['createdAt', 'DESC'], // existing order
+                ['name', 'ASC']        // new order by name
+            ],
+        })
+        return res.status(200).send({
+            success: true,
+            items: data
+        })
+
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+}
+
 
 exports.GetSingleAttribute = async (req, res) => {
     try {
@@ -34,11 +166,15 @@ exports.GetSingleAttribute = async (req, res) => {
     }
 }
 
-exports.getAttributrType = async (req, res) => {
+
+exports.getAttributeByType = async (req, res) => {
     try {
-        let data = await Attribute.findAll({
+        let data = await db.attribute.findAll({
             attributes: ['id', 'name'],
-            where: { compId: req?.compId, type: req.params.type, active: true },
+            where: {
+                attr_type_id: req.params.attr_type_id,
+                active: true
+            },
             order: [['createdAt', 'DESC']],
         })
         return res.status(200).send({
@@ -51,33 +187,51 @@ exports.getAttributrType = async (req, res) => {
     }
 }
 
-exports.getAttributrWithPage = async (req, res) => {
-    const page = parseInt(req.params.page) || 1;
-    const pageSize = parseInt(req.params.pageSize) || 10;
-    const offset = (page - 1) * pageSize;
+
+
+exports.CreateAttributeValue = async (req, res) => {
     try {
-        let data = await Attribute.findAll({
-            where: { compId: req?.compId, active: true },
-            limit: pageSize,
-            offset: offset,
-            order: [['createdAt', 'DESC']],
-        })
-        const totalCount = await Attribute.count({
-            where: {
-                compId: req?.compId
-            }
+        await db.attributevalue.create({
+            active: true,
+            attr_id: req.body.attr_id,
+            name: req.body.name,
+            compId: req.compId,
+            createdby: req.userId,
+            creator: req.user
         });
 
         return res.status(200).send({
             success: true,
-            items: data,
-            count: totalCount
+            message: "Attribute Created Successfully"
         })
 
     } catch (error) {
         res.status(500).send({ success: false, message: error.message });
     }
+
 }
+
+exports.GetAttributeValueByAttrId = async (req, res) => {
+    try {
+        let data = await db.attributevalue.findAll({
+            where: {
+                active: true,
+                attr_id: req.params.attr_id
+            }
+        });
+
+        return res.status(200).send({
+            success: true,
+            items: data
+        })
+
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+
+}
+
+
 
 
 
@@ -87,7 +241,6 @@ exports.searchAttributr = async (req, res) => {
         let data = await Attribute.findAll({
             where: {
                 name: { [Op.like]: `%${searchTerm}%` },
-                compId: req?.compId,
                 active: true,
             }
         });
@@ -105,35 +258,25 @@ exports.searchAttributr = async (req, res) => {
 
 
 
-exports.CreateAttributr = async (req, res) => {
+
+
+
+
+
+exports.GetAttributeType = async (req, res) => {
 
     try {
-        const data = await Attribute.findOne({
+        const data = await Attribute.findAll({
             where: {
+                active: true,
                 name: req.body.name,
-                compId: req.compId
             }
         })
 
-        if (data) {
-            return res.status(200).send({
-                success: true,
-                message: "Attribute already exist"
-            })
-        }
-
-        await Attribute.create({
-            active: true,
-            type: req.body.type,
-            name: req.body.name,
-            compId: req.compId,
-            createdby: req.userId,
-            creator: req.user
-        });
 
         return res.status(200).send({
             success: true,
-            message: "Attribute Created Successfully"
+            items: data
         })
 
     } catch (error) {

@@ -63,6 +63,14 @@ module.exports = (sequelize, Sequelize) => {
         methodname: {
             type: Sequelize.STRING
         },
+        order_type: {
+            type: Sequelize.STRING,
+            defaultValue: "Online"
+        },
+        is_edit: {
+            type: Sequelize.BOOLEAN,
+            defaultValue: false
+        },
         return: {
             type: Sequelize.INTEGER,
             defaultValue: 0,
@@ -81,6 +89,10 @@ module.exports = (sequelize, Sequelize) => {
         balance: {
             type: Sequelize.INTEGER,
             defaultValue: 0
+        },
+        note: {
+            type: Sequelize.STRING,
+            defaultValue: ''
         }
     }, { charset: 'utf8mb4', collate: 'utf8mb4_unicode_ci' });
 
