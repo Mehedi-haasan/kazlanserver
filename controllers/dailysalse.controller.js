@@ -173,7 +173,7 @@ exports.getExpense = async (req, res) => {
         let ex_list = pur_Expense?.map(item => ({
             id: item?.id,
             type: item?.type,
-            customername: `${item?.customername}, ${item?.methodname}, ${item?.note}`,
+            customername: `${item?.methodname} == ${item?.note}`,
             total: item?.total,
             paidamount: item?.paidamount
         }));

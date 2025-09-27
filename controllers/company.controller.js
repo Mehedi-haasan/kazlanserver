@@ -40,7 +40,7 @@ exports.CreateInfo = async (req, res) => {
             address,
             shopcode,
             footertext,
-            creator: req?.creator
+            creator: req?.user
         });
 
         return res.status(201).send({
@@ -105,7 +105,10 @@ exports.GetCompanyInfo = async (req, res) => {
 
 exports.GetAllCompany = async (req, res) => {
     try {
-        const data = await Company.findAll({});
+        const data = await Company.findAll({
+            where: { active: true },
+            order: [['createdAt', 'DESC']],
+        });
         return res.status(200).send({
             success: true,
             items: data

@@ -169,7 +169,8 @@ exports.getShopList = async (req, res) => {
         const shops = await db.company.findAll({
             where: { active: true },
             limit: pageSize,
-            offset: offset
+            offset: offset,
+            order: [['createdAt', 'DESC']]
         });
 
 
