@@ -43,7 +43,7 @@ exports.CreateOrder = async (req, res) => {
             status: status,
             type: "Sale",
             deliverydate: deliverydate,
-            balance: parseInt(user?.balance) + parseInt(amount),
+            balance: amount,
             special_discount: special_discount,
             sup_invo: sup_invo
         });
@@ -69,8 +69,7 @@ exports.CreateOrder = async (req, res) => {
             }
         }
 
-
-        if (user) { await Customer.update({ balance: user.balance + amount }, { where: { id: userId } }); }
+        if (user) { await Customer.update({ balance: amount }, { where: { id: userId } }); }
 
         await transaction.commit();
         return res.status(200).send({
@@ -89,8 +88,8 @@ exports.CreateOrder = async (req, res) => {
 
 exports.ReturnOrder = async (req, res) => {
 
-    const { shop, customername, orders, userId, lastdiscount, date, packing, status, paidamount,amount,
-        delivery, total, deliverydate, pay_type, paymentmethod, methodname, sup_invo, special_discount } = req.body;
+    const { shop, customername, orders, userId, lastdiscount, date, packing, status, paidamount, amount,
+        delivery, total, deliverydate, paymentmethod, methodname, sup_invo, special_discount } = req.body;
 
     let transaction;
 
@@ -120,7 +119,7 @@ exports.ReturnOrder = async (req, res) => {
             status: status,
             type: "Sale Return",
             deliverydate: deliverydate,
-            balance: parseInt(user?.balance) - parseInt(total),
+            balance: amount,
             special_discount: special_discount,
             sup_invo: sup_invo
         });
@@ -146,9 +145,7 @@ exports.ReturnOrder = async (req, res) => {
             }
         }
 
-        let user_balance = total - paidamount
-
-        if (user) { await Customer.update({ balance: user.balance - amount }, { where: { id: userId } }); }
+        if (user) { await Customer.update({ balance: amount }, { where: { id: userId } }); }
 
         await transaction.commit();
         return res.status(200).send({
@@ -172,15 +169,14 @@ exports.UpdateOrder = async (req, res) => {
     try {
 
         const PrevInvoice = await Invoice.findOne({ where: { id: invoice?.id } })
-        const Invo = await Invoice.update(invoice, { where: { id: invoice?.id } });
-        const updatedOrders = allData.map(order => ({
-            ...order,
-            invoice_id: invoice.id,
-            compId: req?.compId,
-            createdby: req?.userId,
-            creator: req?.user
-        }));
-
+        const user = await Customer.findOne({ where: { id: PrevInvoice?.userId } });
+        if (user) {
+            const adjustedBalance = user.balance + PrevInvoice?.total;
+            await Customer.update(
+                { balance: adjustedBalance },
+                { where: { id: user?.id } }
+            );
+        }
         let ReturnDatas = await SaleOrder.findAll({ where: { invoice_id: invoice?.id } })
         await Promise.all(ReturnDatas?.map(async (pro) => {
             const product = await Product.findOne({ where: { id: pro?.product_id } });
@@ -191,14 +187,30 @@ exports.UpdateOrder = async (req, res) => {
                 );
             }
         }));
-
         let DeleteData = await SaleOrder.update(
             { active: false },
             { where: { invoice_id: invoice?.id } }
         );
 
-        await SaleOrder.bulkCreate(updatedOrders);
 
+        await Invoice.update(invoice, { where: { id: invoice?.id } });
+        const Invo = await Invoice.findOne({ where: { id: invoice?.id } });
+        const updated_user = await Customer.findOne({ where: { id: Invo?.userId } });
+        if (updated_user) {
+            const adjustedBalance = updated_user.balance - (Invo?.total - Invo?.paidamount);
+            await Customer.update(
+                { balance: adjustedBalance },
+                { where: { id: updated_user?.id } }
+            );
+        }
+        const updatedOrders = allData.map(order => ({
+            ...order,
+            invoice_id: invoice?.id,
+            compId: req?.compId,
+            createdby: req?.userId,
+            creator: req?.user
+        }));
+        await SaleOrder.bulkCreate(updatedOrders);
         await Promise.all(updatedOrders?.map(async (pro) => {
             const product = await Product.findOne({ where: { id: pro?.product_id } });
             if (product) {
@@ -209,20 +221,6 @@ exports.UpdateOrder = async (req, res) => {
             }
         }));
 
-        const user = await Customer.findOne({ where: { id: invoice?.userId } });
-
-        if (user) {
-            const adjustedBalance = user.balance - PrevInvoice?.paidamount + invoice?.total;
-
-            await Customer.update(
-                { balance: adjustedBalance },
-                { where: { id: invoice?.userId } }
-            );
-        }
-
-
-
-
         return res.status(200).send({
             success: true,
             message: "Update Order Successfull",
@@ -231,7 +229,6 @@ exports.UpdateOrder = async (req, res) => {
         })
 
     } catch (error) {
-        if (transaction) await transaction.rollback();
         res.status(500).send({ success: false, message: error.message });
     }
 }
@@ -271,7 +268,7 @@ exports.ReturnPurchase = async (req, res) => {
             status: status,
             type: "Return Purchase",
             deliverydate: deliverydate,
-            balance: parseInt(user?.balance) + parseInt(amount),
+            balance: amount,
             special_discount: special_discount,
             sup_invo: sup_invo
         });
@@ -303,7 +300,7 @@ exports.ReturnPurchase = async (req, res) => {
         }
 
 
-        if (user) { await Customer.update({ balance: user.balance + amount }, { where: { id: userId } }); }
+        if (user) { await Customer.update({ balance: amount }, { where: { id: userId } }); }
 
 
         // await transaction.commit();
@@ -355,7 +352,7 @@ exports.PurchaseProduct = async (req, res) => {
             status: status,
             type: "Purchase items",
             deliverydate: deliverydate,
-            balance: parseInt(user?.balance) - parseInt(amount),
+            balance: amount,
             special_discount: special_discount,
             sup_invo: sup_invo
         });
@@ -383,7 +380,7 @@ exports.PurchaseProduct = async (req, res) => {
         }
 
         if (user) {
-            await Customer.update({ balance: user.balance - amount }, { where: { id: userId } });
+            await Customer.update({ balance: amount }, { where: { id: userId } });
         }
 
 
@@ -482,7 +479,7 @@ exports.OfflineToOnline = async (req, res) => {
                 due: item?.due,
                 status: item?.status,
                 is_edit: false,
-                order_type:"Offline",
+                order_type: "Offline",
                 type: item?.type,
                 deliverydate: item?.deliverydate
             });

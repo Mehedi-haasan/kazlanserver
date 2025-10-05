@@ -27,7 +27,7 @@ exports.getStateWithPage = async (req, res) => {
     try {
         let data = await State.findAll({
             limit: pageSize,
-            attributes: ['id', 'name'],
+            attributes: ['id','active', 'name'],
             offset: offset
         })
         return res.status(200).send({
@@ -126,6 +126,41 @@ exports.UpdateState = async (req, res) => {
 
     } catch (error) {
         return res.status(500).send({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
+
+exports.BulkUpdate = async (req, res) => {
+    try {
+        const { data } = req.body;
+
+        if (!Array.isArray(data) || data.length === 0) {
+            return res.status(400).json({
+                success: false,
+                message: "No data provided for update."
+            });
+        }
+
+
+        for (const item of data) {
+            if (!item.id) continue;
+
+            await db.state.update(
+                { active: item.active }, 
+                { where: { id: item.id } }
+            );
+        }
+
+        return res.status(200).json({
+            success: true,
+            message: "State updated successfully."
+        });
+
+    } catch (error) {
+        return res.status(500).json({
             success: false,
             message: error.message
         });

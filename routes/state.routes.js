@@ -15,5 +15,5 @@ module.exports = function (app) {
     app.get("/api/get/state/:page/:pageSize", jwt.verifyToken, controller.getStateWithPage);
     app.post("/api/update/state/:id", controller.UpdateState);
     app.delete("/api/delete/state/:id", controller.DeleteState);
-
+    app.post("/api/bulk/delete/state", [jwt.verifyToken, jwt.isAdmin], controller.BulkUpdate);
 };

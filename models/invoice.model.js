@@ -12,6 +12,9 @@ module.exports = (sequelize, Sequelize) => {
         date: {
             type: Sequelize.STRING
         },
+        payment_type: {
+            type: Sequelize.STRING
+        },
         compId: {
             type: Sequelize.INTEGER
         },

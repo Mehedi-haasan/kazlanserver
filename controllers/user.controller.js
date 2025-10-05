@@ -52,7 +52,6 @@ exports.getUsersWithRole = async (req, res) => {
     try {
         const data = await User.findAll({
             where: {
-                compId: req.compId,
                 active: true
             },
             limit: pageSize,

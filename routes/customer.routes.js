@@ -25,7 +25,7 @@ module.exports = function (app) {
     app.get("/api/search/due/customers/:due/:type", [jwt.verifyToken], controller.SearchDueCustomer);
 
     app.post("/api/update/customer/balance/:id/:type", [jwt.verifyToken, jwt.isAdmin], controller.UpdateCustomerBalance);
-
+    app.post("/api/edit/user/balance/:id/:type", [jwt.verifyToken, jwt.isAdmin], controller.EditUserBalance);
 
 
 
@@ -35,19 +35,12 @@ module.exports = function (app) {
 
 
 
-
-    app.get("/api/get/retail/customers/:page/:pageSize", [jwt.verifyToken], controller.RetailerCustomer);
-    app.get("/api/get/retail/customers/:stateId", [jwt.verifyToken], controller.GetRetailerCustomer);
-
-
-
     app.get("/api/get/customer/due/:userId", [jwt.verifyToken], controller.GetCustomerDue);
 
 
     app.post("/api/get/payment/history/:id", [jwt.verifyToken], controller.PaymentHistory);
 
     app.delete("/api/delete/customer/:id", [jwt.verifyToken], controller.DeleteCustomer);
-
 
 
     app.post("/api/bulk/update/customer", [jwt.verifyToken, jwt.isAdmin], controller.BulkUpdate);

@@ -37,6 +37,31 @@ exports.getAllOrder = async (req, res) => {
     }
 }
 
+
+exports.getSingleInvoice = async (req, res) => {
+    try {
+        let data = await Invoice.findOne({
+            where: {
+                id: req?.params?.id
+            }
+        })
+        let user = await db.customer.findAll({
+            where: {
+                compId: req?.compId,
+                active: true
+            }
+        })
+        return res.status(200).send({
+            success: true,
+            items: data,
+            user:user
+        })
+
+    } catch (error) {
+        return res.status(500).send({ success: false, message: error.message });
+    }
+}
+
 function getFormattedDate() {
     const date = new Date();
     const options = { day: 'numeric', month: 'long', year: 'numeric' };
@@ -96,7 +121,7 @@ exports.getExpense = async (req, res) => {
             cash_sale.paidamount += item?.paidamount ?? 0;
         });
         pre_final.items.push({
-            customername: "Cash Sale",
+            customername: "Cash Balance",
             type: "Income",
             id: 0,
             total: cash_sale?.total,
@@ -137,7 +162,7 @@ exports.getExpense = async (req, res) => {
             online_collection.paidamount += item?.paidamount ?? 0;
         });
         pre_final.items.push({
-            customername: "Online Colection",
+            customername: "Online Collections",
             type: "Income",
             id: 0,
             total: online_collection?.total,
@@ -173,7 +198,7 @@ exports.getExpense = async (req, res) => {
         let ex_list = pur_Expense?.map(item => ({
             id: item?.id,
             type: item?.type,
-            customername: `${item?.methodname} == ${item?.note}`,
+            customername: `${item?.methodname} -- ${item?.note}`,
             total: item?.total,
             paidamount: item?.paidamount
         }));
@@ -540,7 +565,8 @@ exports.getDailySalse = async (req, res) => {
             where: {
                 createdAt: { [Op.gte]: today },
                 compId: req?.compId,
-                type: "Sale"
+                type: "Sale",
+                active: true
             },
             limit: 300,
             order: [["createdAt", "DESC"]]
@@ -551,7 +577,35 @@ exports.getDailySalse = async (req, res) => {
         return res.status(200).send({
             success: true,
             items: calcutatedData,
-            amount:amount
+            amount: amount
+        })
+
+    } catch (error) {
+        return res.status(500).send({ success: false, message: error.message });
+    }
+}
+
+exports.GetTodaySale = async (req, res) => {
+
+    try {
+        const today = new Date();
+        today.setHours(0, 0, 0, 0);
+        let data = await db.invoice.findAll({
+            where: {
+                createdAt: { [Op.gte]: today },
+                compId: req?.compId,
+                type: "Sale",
+                active: true
+            },
+            limit: 300,
+            order: [["createdAt", "DESC"]]
+        })
+        const amount = data.reduce((sum, item) => sum + (item.paidamount || 0), 0);
+
+
+        return res.status(200).send({
+            success: true,
+            amount: amount
         })
 
     } catch (error) {

@@ -33,6 +33,9 @@ module.exports = (sequelize, Sequelize) => {
         shop: {
             type: Sequelize.STRING
         },
+        cost: {
+            type: Sequelize.INTEGER,
+        },
         price: {
             type: Sequelize.INTEGER,
         },
