@@ -195,9 +195,9 @@ exports.CreateCustomer = async (req, res) => {
 
         let userBalance = 0
         if (balance_type === "You Receive") {
-            userBalance = balance
-        } else if (balance_type === "You Pay") {
             userBalance = balance * -1
+        } else if (balance_type === "You Pay") {
+            userBalance = balance
         } else {
             userBalance = balance
         }
@@ -323,8 +323,13 @@ exports.UpdateCustomerBalance = async (req, res) => {
             });
         }
         let curent = 0
+        let final_return = 0;
+        let paid_amount = parseInt(req.body.paid)
         if (req?.params?.type === "1") {
             curent = customer?.balance - parseInt(req.body.paid)
+            final_return = req.body.paid;
+            paid_amount = 0;
+            console.log("hitting");
         } else if (req?.params?.type === "2") {
             curent = customer?.balance + parseInt(req.body.paid)
         }
@@ -345,8 +350,9 @@ exports.UpdateCustomerBalance = async (req, res) => {
             methodname: req.body.methodname,
             customername: customer?.name,
             previousdue: curent,
-            paidamount: parseInt(req.body.paid),
+            paidamount: paid_amount,
             due: 0,
+            return: final_return,
             status: req.body.status,
             type: req.body.type,
             deliverydate: getFormattedDate(),
@@ -356,9 +362,9 @@ exports.UpdateCustomerBalance = async (req, res) => {
         });
 
         if (req?.params?.type === "1") {
-            await db.customer.update({ balance: parseInt(customer?.balance) - parseInt(req.body.paid) }, { where: { id: req?.params?.id } });
+            await db.customer.update({ balance: curent }, { where: { id: req?.params?.id } });
         } else if (req?.params?.type === "2") {
-            await db.customer.update({ balance: parseInt(customer?.balance) + parseInt(req.body.paid) }, { where: { id: req?.params?.id } });
+            await db.customer.update({ balance: curent }, { where: { id: req?.params?.id } });
         }
 
 
@@ -544,7 +550,8 @@ exports.PaymentHistory = async (req, res) => {
         return res.status(200).send({
             success: true,
             items: data,
-            history: history
+            history: history,
+            count: history?.length
         });
 
     } catch (error) {

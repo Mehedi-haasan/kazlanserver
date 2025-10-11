@@ -11,6 +11,7 @@ module.exports = function (app) {
 
     app.get('/api/get/order', jwt.verifyToken, controller.getAllOrder);
     app.get('/api/get/invoice/:id', jwt.verifyToken, controller.getSingleInvoice);
+    app.delete('/api/delete/invoice/:id', jwt.verifyToken, controller.DeleteInvoice);
     app.get('/api/get/order/:id/:type', jwt.verifyToken, controller.getOrder);
     app.get('/api/get/invo/order/:id/:type', jwt.verifyToken, controller.getOrderInvo);
 

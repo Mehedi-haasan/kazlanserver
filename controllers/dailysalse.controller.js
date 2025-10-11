@@ -54,13 +54,65 @@ exports.getSingleInvoice = async (req, res) => {
         return res.status(200).send({
             success: true,
             items: data,
-            user:user
+            user: user
         })
 
     } catch (error) {
         return res.status(500).send({ success: false, message: error.message });
     }
 }
+
+exports.DeleteInvoice = async (req, res) => {
+    try {
+
+        let data = await Invoice.findOne({
+            where: { id: req?.params?.id }
+        });
+
+        if (!data) {
+            return res.status(404).send({
+                success: false,
+                message: "Invoice not found"
+            });
+        }
+
+        let amount = 0;
+        if (data?.pay_type === "You Pay") {
+            amount = data?.paidamount; 
+        } else if (data?.pay_type === "You Receive") {
+            amount = data?.paidamount * -1; 
+        }
+
+        let user = await db.customer.findOne({
+            where: { id: data?.userId }
+        });
+
+        if (!user) {
+            return res.status(404).send({
+                success: false,
+                message: "User not found"
+            });
+        }
+
+        const updatedBalance = user.balance + amount;
+        await user.update({ balance: updatedBalance });
+
+        await data.update({ active: false });
+
+        return res.status(200).send({
+            success: true,
+            message: "Invoice deleted successfully",
+            newBalance: updatedBalance
+        });
+
+    } catch (error) {
+        return res.status(500).send({
+            success: false,
+            message: error.message
+        });
+    }
+};
+
 
 function getFormattedDate() {
     const date = new Date();

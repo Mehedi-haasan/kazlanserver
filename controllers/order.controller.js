@@ -41,6 +41,7 @@ exports.CreateOrder = async (req, res) => {
             paidamount: paidamount,
             due: total - paidamount,
             status: status,
+            pay_type:"You Receive",
             type: "Sale",
             deliverydate: deliverydate,
             balance: amount,
@@ -107,7 +108,7 @@ exports.ReturnOrder = async (req, res) => {
             userId: userId,
             paymentmethod: paymentmethod,
             methodname: methodname,
-            total: total,
+            total: 0,
             packing: packing,
             delivery: delivery,
             lastdiscount: lastdiscount,
@@ -116,6 +117,7 @@ exports.ReturnOrder = async (req, res) => {
             paidamount: paidamount,
             return: total,
             due: 0,
+            pay_type:"You Pay",
             status: status,
             type: "Sale Return",
             deliverydate: deliverydate,
@@ -254,7 +256,7 @@ exports.ReturnPurchase = async (req, res) => {
             createdby: req.userId,
             creator: req?.user,
             userId: userId,
-            total: total,
+            total: 0,
             methodname: methodname,
             paymentmethod: paymentmethod,
             packing: packing,
@@ -264,6 +266,7 @@ exports.ReturnPurchase = async (req, res) => {
             previousdue: previousdue,
             paidamount: paidamount,
             return: total,
+            pay_type:"You Receive",
             due: 0,
             status: status,
             type: "Return Purchase",
@@ -350,6 +353,7 @@ exports.PurchaseProduct = async (req, res) => {
             paidamount: paidamount,
             due: total - paidamount,
             status: status,
+            pay_type:"You Pay",
             type: "Purchase items",
             deliverydate: deliverydate,
             balance: amount,
@@ -422,7 +426,7 @@ exports.SearchOrder = async (req, res) => {
         };
 
         if (name) {
-            if (!isNaN(search)) {
+            if (!isNaN(name)) {
                 whereClause[Op.or] = [
                     { id: { [Op.like]: `%${name}%` } }, // exact match
                     { customername: { [Op.like]: `%${name}%` } },
