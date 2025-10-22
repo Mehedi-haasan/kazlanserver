@@ -91,6 +91,28 @@ exports.SearchDueCustomer = async (req, res) => {
     }
 }
 
+exports.SearchDueSupplier = async (req, res) => {
+    try {
+        let data = await db.customer.findAll({
+            where: {
+                active: true,
+                compId: req.compId,
+                balance: { [Op.gt]: req.params.due },
+                usertype: req.params.type
+            },
+            include: [{ model: db.state }]
+        })
+        return res.status(200).send({
+            success: true,
+            items: data,
+            count: data?.length
+        })
+
+    } catch (error) {
+        return res.status(500).send({ success: false, message: error.message });
+    }
+}
+
 exports.GetCustomerWithPage = async (req, res) => {
     const page = parseInt(req.params.page) || 1;
     const pageSize = parseInt(req.params.pageSize) || 10;
@@ -228,7 +250,7 @@ exports.CreateCustomer = async (req, res) => {
             createdby: req.userId,
             creator: req?.user,
             userId: data?.id,
-            total: userBalance,
+            total: 0,
             paymentmethod: "",
             methodname: `Online`,
             packing: 0,
@@ -329,7 +351,6 @@ exports.UpdateCustomerBalance = async (req, res) => {
             curent = customer?.balance - parseInt(req.body.paid)
             final_return = req.body.paid;
             paid_amount = 0;
-            console.log("hitting");
         } else if (req?.params?.type === "2") {
             curent = customer?.balance + parseInt(req.body.paid)
         }
@@ -358,7 +379,8 @@ exports.UpdateCustomerBalance = async (req, res) => {
             deliverydate: getFormattedDate(),
             balance: curent,
             special_discount: 0,
-            sup_invo: ''
+            sup_invo: '',
+            note:req?.body?.note
         });
 
         if (req?.params?.type === "1") {
@@ -382,7 +404,83 @@ exports.UpdateCustomerBalance = async (req, res) => {
     }
 };
 
-exports.EditUserBalance = async (req, res) => {
+exports.UpdateSupplierBalance = async (req, res) => {
+
+    try {
+        let customer = await db.customer.findOne({
+            where: {
+                id: req?.params?.id
+            }
+        });
+        if (!customer) {
+            return res.status(200).send({
+                success: true,
+                message: "Supplier not found",
+            });
+        }
+        let curent = 0
+        let final_return = 0;
+        let paid_amount = 0
+        if (req?.params?.type === "1") {
+            curent = customer?.balance + parseInt(req.body.paid)
+            final_return = req.body.paid;
+            paid_amount = 0;
+        } else if (req?.params?.type === "2") {
+            curent = customer?.balance - parseInt(req.body.paid)
+            final_return = 0;
+            paid_amount = req.body.paid;
+        }
+
+        await db.invoice.create({
+            date: req.body.date,
+            payment_type: req?.body?.payment_type,
+            compId: req?.compId,
+            shopname: req?.body?.shop,
+            createdby: req.userId,
+            creator: req?.user,
+            userId: req?.params?.id,
+            paymentmethod: req.body?.paymentmethod,
+            total: 0,
+            packing: 0,
+            delivery: 0,
+            lastdiscount: 0,
+            methodname: req.body.methodname,
+            customername: customer?.name,
+            previousdue: curent,
+            paidamount: paid_amount,
+            due: 0,
+            return: final_return,
+            status: req.body.status,
+            type: req.body.type,
+            deliverydate: getFormattedDate(),
+            balance: curent,
+            special_discount: 0,
+            sup_invo: '',
+            note:req?.body?.note
+        });
+
+        if (req?.params?.type === "2") {
+            await db.customer.update({ balance: curent }, { where: { id: req?.params?.id } });
+        } else if (req?.params?.type === "1") {
+            await db.customer.update({ balance: curent }, { where: { id: req?.params?.id } });
+        }
+
+
+        return res.status(200).send({
+            success: true,
+            message: "Updated Successfully",
+            customertype: customer?.customertype
+        });
+
+    } catch (error) {
+        return res.status(500).send({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
+exports.EditSupplierBalance = async (req, res) => {
     const { invo } = req?.body
     try {
         let Invo = await db.invoice.findOne({
@@ -441,6 +539,68 @@ exports.EditUserBalance = async (req, res) => {
         });
     }
 };
+
+
+exports.EditCustomerBalance = async (req, res) => {
+    const { invo } = req?.body
+    try {
+        let Invo = await db.invoice.findOne({
+            where: {
+                id: invo?.id
+            }
+        })
+
+        let prev_customer = await db.customer.findOne({
+            where: {
+                id: Invo?.userId
+            }
+        });
+
+
+        if (Invo?.payment_type === "You Pay") {
+            await db.customer.update({ balance: prev_customer?.balance + Invo?.paidamount }, { where: { id: prev_customer?.id } });
+        } else if (Invo?.payment_type === "You Receive") {
+            await db.customer.update({ balance: prev_customer?.balance - Invo?.paidamount }, { where: { id: prev_customer?.id } });
+        }
+
+        let next_customer = await db.customer.findOne({
+            where: {
+                id: invo?.userId
+            }
+        });
+
+        let curent = 0
+        if (req?.params?.type === "1") {
+            curent = next_customer?.balance - parseInt(invo?.paidamount)
+        } else if (req?.params?.type === "2") {
+            curent = next_customer?.balance + parseInt(invo?.paidamount)
+        }
+
+        await db.invoice.update(invo, { where: { id: Invo?.id } });
+
+        if (req?.params?.type === "1") {
+            await db.customer.update({ balance: curent }, { where: { id: next_customer?.id } });
+        } else if (req?.params?.type === "2") {
+            await db.customer.update({ balance: curent }, { where: { id: next_customer?.id } });
+        }
+
+
+        return res.status(200).send({
+            success: true,
+            message: "Updated Successfully",
+            invo: Invo,
+            prev_cus: prev_customer,
+            next_cus: next_customer
+        });
+
+    } catch (error) {
+        return res.status(500).send({
+            success: false,
+            message: error.message,
+        });
+    }
+};
+
 
 exports.UpdateSupplier = async (req, res) => {
     const { id } = req.params;
@@ -516,7 +676,8 @@ exports.GetCustomerDue = async (req, res) => {
         return res.status(200).send({
             success: true,
             balance: data?.balance,
-            phone: data?.phone
+            phone: data?.phone,
+            name:data?.name
         })
 
     } catch (error) {
@@ -526,38 +687,53 @@ exports.GetCustomerDue = async (req, res) => {
 
 
 exports.PaymentHistory = async (req, res) => {
-    try {
-        const { fromDate, toDate } = req.body;
+  try {
+    const { fromDate, toDate } = req.body;
 
-        const from = new Date(fromDate);
-        const to = new Date(toDate);
-
-        // Ensure full day is included for the end date
-        to.setHours(23, 59, 59, 999);
-
-        const data = await db.customer.findOne({ where: { id: req.params.id } });
-
-        const history = await db.invoice.findAll({
-            where: {
-                userId: req.params.id,
-                createdAt: {
-                    [Op.between]: [from, to]
-                }
-            },
-            order: [['createdAt', 'DESC']]
-        });
-
-        return res.status(200).send({
-            success: true,
-            items: data,
-            history: history,
-            count: history?.length
-        });
-
-    } catch (error) {
-        return res.status(500).send({ success: false, message: error.message });
+    // Ensure fromDate and toDate are valid date strings like "2025-10-01"
+    if (!fromDate || !toDate) {
+      return res.status(400).send({ success: false, message: "fromDate and toDate are required." });
     }
+
+    // Fetch customer info
+    const data = await db.customer.findOne({ where: { id: req.params.id } });
+
+    // Find the last opening record before the 'fromDate'
+    const opening = await db.invoice.findOne({
+      where: {
+        userId: req.params.id,
+        created_date: { [Op.lt]: fromDate },
+      },
+      order: [["createdAt", "DESC"]],
+    });
+
+    // Find all invoices between fromDate and toDate
+    const history = await db.invoice.findAll({
+      where: {
+        userId: req.params.id,
+        created_date: {
+          [Op.between]: [fromDate, toDate],
+        },
+      },
+      order: [["createdAt", "DESC"]],
+    });
+
+    // Send the response
+    return res.status(200).send({
+      success: true,
+      items: data,
+      opening,
+      history,
+      count: history?.length || 0
+    });
+
+  } catch (error) {
+    console.error("PaymentHistory Error:", error);
+    return res.status(500).send({ success: false, message: error.message });
+  }
 };
+
+
 
 
 exports.DeleteCustomer = async (req, res) => {

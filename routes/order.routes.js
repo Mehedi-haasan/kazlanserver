@@ -18,7 +18,8 @@ module.exports = function (app) {
     app.post('/api/return/purchase', jwt.verifyToken, controller.ReturnPurchase)
 
 
-    app.post('/api/update/order', jwt.verifyToken, controller.UpdateOrder);
+    app.post('/api/edit/sale/order', jwt.verifyToken, controller.EditSaleOrder);
+    app.post('/api/edit/purchase/order', jwt.verifyToken, controller.EditPurchaseOrder);
 
     app.get('/api/search/data/:name', jwt.verifyToken, controller.SearchOrder);
 

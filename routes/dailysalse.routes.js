@@ -15,6 +15,7 @@ module.exports = function (app) {
     app.get('/api/get/order/:id/:type', jwt.verifyToken, controller.getOrder);
     app.get('/api/get/invo/order/:id/:type', jwt.verifyToken, controller.getOrderInvo);
 
+    app.get('/api/get/order/summary', jwt.verifyToken, controller.getAllOrder);
 
     app.get('/api/get/order/daily/salse/test', jwt.verifyToken, controller.getDailySalse);
     app.get('/api/get/order/daily/sale/today',jwt.verifyToken, controller.GetTodaySale);

@@ -41,7 +41,7 @@ exports.CreateOrder = async (req, res) => {
             paidamount: paidamount,
             due: total - paidamount,
             status: status,
-            pay_type:"You Receive",
+            pay_type: "You Receive",
             type: "Sale",
             deliverydate: deliverydate,
             balance: amount,
@@ -108,7 +108,7 @@ exports.ReturnOrder = async (req, res) => {
             userId: userId,
             paymentmethod: paymentmethod,
             methodname: methodname,
-            total: 0,
+            total: total,
             packing: packing,
             delivery: delivery,
             lastdiscount: lastdiscount,
@@ -117,7 +117,7 @@ exports.ReturnOrder = async (req, res) => {
             paidamount: paidamount,
             return: total,
             due: 0,
-            pay_type:"You Pay",
+            pay_type: "You Pay",
             status: status,
             type: "Sale Return",
             deliverydate: deliverydate,
@@ -164,7 +164,7 @@ exports.ReturnOrder = async (req, res) => {
 }
 
 
-exports.UpdateOrder = async (req, res) => {
+exports.EditSaleOrder = async (req, res) => {
 
     const { invoice, allData } = req.body;
 
@@ -173,13 +173,13 @@ exports.UpdateOrder = async (req, res) => {
         const PrevInvoice = await Invoice.findOne({ where: { id: invoice?.id } })
         const user = await Customer.findOne({ where: { id: PrevInvoice?.userId } });
         if (user) {
-            const adjustedBalance = user.balance + PrevInvoice?.total;
+            const adjustedBalance = user.balance + PrevInvoice?.due;
             await Customer.update(
                 { balance: adjustedBalance },
                 { where: { id: user?.id } }
             );
         }
-        let ReturnDatas = await SaleOrder.findAll({ where: { invoice_id: invoice?.id } })
+        let ReturnDatas = await SaleOrder.findAll({ where: { invoice_id: PrevInvoice?.id } })
         await Promise.all(ReturnDatas?.map(async (pro) => {
             const product = await Product.findOne({ where: { id: pro?.product_id } });
             if (product) {
@@ -199,7 +199,7 @@ exports.UpdateOrder = async (req, res) => {
         const Invo = await Invoice.findOne({ where: { id: invoice?.id } });
         const updated_user = await Customer.findOne({ where: { id: Invo?.userId } });
         if (updated_user) {
-            const adjustedBalance = updated_user.balance - (Invo?.total - Invo?.paidamount);
+            const adjustedBalance = updated_user.balance + invoice?.due;
             await Customer.update(
                 { balance: adjustedBalance },
                 { where: { id: updated_user?.id } }
@@ -236,6 +236,77 @@ exports.UpdateOrder = async (req, res) => {
 }
 
 
+exports.EditPurchaseOrder = async (req, res) => {
+
+    const { invoice, allData } = req.body;
+
+    try {
+
+        const PrevInvoice = await Invoice.findOne({ where: { id: invoice?.id } })
+        const user = await Customer.findOne({ where: { id: PrevInvoice?.userId } });
+        if (user) {
+            const adjustedBalance = user.balance - PrevInvoice?.due;
+            await Customer.update(
+                { balance: adjustedBalance },
+                { where: { id: user?.id } }
+            );
+        }
+        let ReturnDatas = await SaleOrder.findAll({ where: { invoice_id: PrevInvoice?.id } })
+        await Promise.all(ReturnDatas?.map(async (pro) => {
+            const product = await Product.findOne({ where: { id: pro?.product_id } });
+            if (product) {
+                await Product.update(
+                    { qty: parseInt(product.qty) - parseInt(pro.qty) },
+                    { where: { id: product.id } }
+                );
+            }
+        }));
+        let DeleteData = await SaleOrder.update(
+            { active: false },
+            { where: { invoice_id: invoice?.id } }
+        );
+
+
+        await Invoice.update(invoice, { where: { id: invoice?.id } });
+        const Invo = await Invoice.findOne({ where: { id: invoice?.id } });
+        const updated_user = await Customer.findOne({ where: { id: Invo?.userId } });
+        if (updated_user) {
+            const adjustedBalance = updated_user.balance + invoice?.due;
+            await Customer.update(
+                { balance: adjustedBalance },
+                { where: { id: updated_user?.id } }
+            );
+        }
+        const updatedOrders = allData.map(order => ({
+            ...order,
+            invoice_id: invoice?.id,
+            compId: req?.compId,
+            createdby: req?.userId,
+            creator: req?.user
+        }));
+        await SaleOrder.bulkCreate(updatedOrders);
+        await Promise.all(updatedOrders?.map(async (pro) => {
+            const product = await Product.findOne({ where: { id: pro?.product_id } });
+            if (product) {
+                await Product.update(
+                    { qty: parseInt(product?.qty) + parseInt(pro?.qty) },
+                    { where: { id: product.id } }
+                );
+            }
+        }));
+
+        return res.status(200).send({
+            success: true,
+            message: "Update Order Successfull",
+            invoice: invoice?.id
+
+        })
+
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+}
+
 
 
 exports.ReturnPurchase = async (req, res) => {
@@ -256,7 +327,7 @@ exports.ReturnPurchase = async (req, res) => {
             createdby: req.userId,
             creator: req?.user,
             userId: userId,
-            total: 0,
+            total: total,
             methodname: methodname,
             paymentmethod: paymentmethod,
             packing: packing,
@@ -266,7 +337,7 @@ exports.ReturnPurchase = async (req, res) => {
             previousdue: previousdue,
             paidamount: paidamount,
             return: total,
-            pay_type:"You Receive",
+            pay_type: "You Receive",
             due: 0,
             status: status,
             type: "Return Purchase",
@@ -353,7 +424,7 @@ exports.PurchaseProduct = async (req, res) => {
             paidamount: paidamount,
             due: total - paidamount,
             status: status,
-            pay_type:"You Pay",
+            pay_type: "You Pay",
             type: "Purchase items",
             deliverydate: deliverydate,
             balance: amount,
@@ -426,23 +497,40 @@ exports.SearchOrder = async (req, res) => {
         };
 
         if (name) {
-            if (!isNaN(name)) {
-                whereClause[Op.or] = [
-                    { id: { [Op.like]: `%${name}%` } }, // exact match
-                    { customername: { [Op.like]: `%${name}%` } },
-                ];
-            } else {
-                whereClause.name = { [Op.like]: `%${name}%` };
-            }
+            whereClause[Op.or] = [
+                { id: { [Op.like]: `%${name}%` } },
+                { customername: { [Op.like]: `%${name}%` } },
+                { type: { [Op.like]: `%${name}%` } }
+            ];
         }
 
         const data = await Invoice.findAll({
             where: whereClause,
+            order: [["createdAt", "DESC"]],
         });
+
+        // Initialize opening
+        let opening = null;
+
+        if (data.length > 0) {
+            // Find the earliest createdAt date in your results
+            const lastCreatedDate = data[data.length - 1].createdAt;
+
+            // Get one invoice before that date (the opening)
+            opening = await db.invoice.findOne({
+                where: {
+                    compId: req?.compId,
+                    active: true,
+                    createdAt: { [Op.lt]: lastCreatedDate },
+                },
+                order: [["createdAt", "DESC"]],
+            });
+        }
 
         return res.status(200).send({
             success: true,
             items: data,
+            opening: opening,
         });
     } catch (error) {
         return res.status(500).send({
@@ -451,6 +539,7 @@ exports.SearchOrder = async (req, res) => {
         });
     }
 };
+
 
 
 

@@ -4,8 +4,8 @@ const Customer = db.customer;
 const Product = db.product;
 const Invoice = db.invoice;
 const Op = db.Sequelize.Op;
-const { fn, col, where } = require("sequelize");
-// const { Op } = require('sequelize');
+const { fn, col, where, Sequelize } = require("sequelize");
+
 
 
 exports.getAllOrder = async (req, res) => {
@@ -37,6 +37,37 @@ exports.getAllOrder = async (req, res) => {
     }
 }
 
+function FormattedDate() {
+    const date = new Date();
+    const year = date.getFullYear();
+    const month = String(date.getMonth() + 1).padStart(2, '0'); // Months are 0-based
+    const day = String(date.getDate()).padStart(2, '0');
+    return `${year}-${month}-${day}`;
+}
+
+exports.getOrderSummary = async (req, res) => {
+    const date = FormattedDate()
+    try {
+        const saleOrderSum = await SaleOrder.findOne({
+            attributes: [[Sequelize.fn('SUM', Sequelize.col('total')), 'totalSellPrice']],
+            where: {
+                compId: req?.compId,
+                type: 'Sale',
+                created_date: date
+            },
+            raw: true
+        });
+        const totalSellPrice = saleOrderSum?.totalSellPrice || 0;
+
+        return res.status(200).send({
+            success: true,
+            items: data
+        })
+
+    } catch (error) {
+        return res.status(500).send({ success: false, message: error.message });
+    }
+}
 
 exports.getSingleInvoice = async (req, res) => {
     try {
@@ -78,9 +109,9 @@ exports.DeleteInvoice = async (req, res) => {
 
         let amount = 0;
         if (data?.pay_type === "You Pay") {
-            amount = data?.paidamount; 
+            amount = data?.paidamount;
         } else if (data?.pay_type === "You Receive") {
-            amount = data?.paidamount * -1; 
+            amount = data?.paidamount * -1;
         }
 
         let user = await db.customer.findOne({
@@ -324,7 +355,7 @@ exports.CreateExpense = async (req, res) => {
             shopname: req.body.shopname,
             createdby: req.userId,
             creator: req?.user,
-            userId: 1,
+            userId: 0,
             total: req.body.paid,
             paymentmethod: "",
             methodname: req.body.methodname,
@@ -553,8 +584,7 @@ exports.getOrderInvo = async (req, res) => {
                 compId: req?.compId,
                 active: true,
             },
-            order: [['id', 'DESC']],
-            limit: 1
+            order: [['id', 'DESC']]
         });
 
 
@@ -820,9 +850,10 @@ exports.getMonthlyOrder = async (req, res) => {
 
 exports.OrderFromTo = async (req, res) => {
     const { fromDate, toDate } = req.body;
-    const from = new Date(fromDate);
-    const to = new Date(toDate);
-    to.setHours(23, 59, 59, 999);
+
+    if (!fromDate || !toDate) {
+        return res.status(400).send({ success: false, message: "fromDate and toDate are required." });
+    }
 
     const page = parseInt(req.params.page) || 1;
     const pageSize = parseInt(req.params.pageSize) || 10;
@@ -832,8 +863,8 @@ exports.OrderFromTo = async (req, res) => {
     let whereClouse = {
         active: true,
         compId: req?.compId,
-        createdAt: {
-            [Op.between]: [from, to],
+        created_date: {
+            [Op.between]: [fromDate, toDate],
         }
     }
     if (req.body.userId !== null && req.body.userId !== undefined) {

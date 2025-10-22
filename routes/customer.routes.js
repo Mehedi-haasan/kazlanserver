@@ -23,10 +23,14 @@ module.exports = function (app) {
     app.post("/api/search/customers", [jwt.verifyToken], controller.SearchCustomer);
 
     app.get("/api/search/due/customers/:due/:type", [jwt.verifyToken], controller.SearchDueCustomer);
+    app.get("/api/search/due/supplier/:due/:type", [jwt.verifyToken], controller.SearchDueSupplier);
 
     app.post("/api/update/customer/balance/:id/:type", [jwt.verifyToken, jwt.isAdmin], controller.UpdateCustomerBalance);
-    app.post("/api/edit/user/balance/:id/:type", [jwt.verifyToken, jwt.isAdmin], controller.EditUserBalance);
+    app.post("/api/update/supplier/balance/:id/:type", [jwt.verifyToken, jwt.isAdmin], controller.UpdateSupplierBalance);
 
+
+    app.post("/api/edit/customer/balance/:id/:type", [jwt.verifyToken, jwt.isAdmin], controller.EditCustomerBalance);
+    app.post("/api/edit/supplier/balance/:id/:type", [jwt.verifyToken, jwt.isAdmin], controller.EditSupplierBalance);
 
 
     app.post("/api/update/customer/:id", [jwt.verifyToken, jwt.isAdmin], controller.UpdateCustomer);

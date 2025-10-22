@@ -12,6 +12,10 @@ module.exports = (sequelize, Sequelize) => {
         date: {
             type: Sequelize.STRING
         },
+        created_date: {
+            type: Sequelize.DATEONLY,
+            defaultValue: Sequelize.NOW,
+        },
         payment_type: {
             type: Sequelize.STRING
         },
