@@ -236,6 +236,78 @@ exports.EditSaleOrder = async (req, res) => {
 }
 
 
+exports.EditSaleReturn = async (req, res) => {
+
+    const { invoice, allData } = req.body;
+
+    try {
+
+        const PrevInvoice = await Invoice.findOne({ where: { id: invoice?.id } })
+        const user = await Customer.findOne({ where: { id: PrevInvoice?.userId } });
+        if (user) {
+            let pay_amount = PrevInvoice?.total + PrevInvoice?.paidamount
+            const adjustedBalance = user.balance - pay_amount;
+            await Customer.update(
+                { balance: adjustedBalance },
+                { where: { id: user?.id } }
+            );
+        }
+        let ReturnDatas = await SaleOrder.findAll({ where: { invoice_id: PrevInvoice?.id } })
+        await Promise.all(ReturnDatas?.map(async (pro) => {
+            const product = await Product.findOne({ where: { id: pro?.product_id } });
+            if (product) {
+                await Product.update(
+                    { qty: parseInt(product.qty) - parseInt(pro.qty) },
+                    { where: { id: product.id } }
+                );
+            }
+        }));
+        let DeleteData = await SaleOrder.update(
+            { active: false },
+            { where: { invoice_id: invoice?.id } }
+        );
+
+
+        await Invoice.update(invoice, { where: { id: invoice?.id } });
+        const Invo = await Invoice.findOne({ where: { id: invoice?.id } });
+        const updated_user = await Customer.findOne({ where: { id: invoice?.userId } });
+        if (updated_user) {
+            const adjustedBalance = updated_user.balance + invoice?.total + invoice?.paidamount;
+            await Customer.update(
+                { balance: adjustedBalance },
+                { where: { id: updated_user?.id } }
+            );
+        }
+        const updatedOrders = allData.map(order => ({
+            ...order,
+            invoice_id: Invo?.id,
+            compId: req?.compId,
+            createdby: req?.userId,
+            creator: req?.user
+        }));
+        await SaleOrder.bulkCreate(updatedOrders);
+        await Promise.all(updatedOrders?.map(async (pro) => {
+            const product = await Product.findOne({ where: { id: pro?.product_id } });
+            if (product) {
+                await Product.update(
+                    { qty: parseInt(product?.qty) + parseInt(pro?.qty) },
+                    { where: { id: product.id } }
+                );
+            }
+        }));
+
+        return res.status(200).send({
+            success: true,
+            message: "Update Order Successfull",
+            invoice: invoice?.id
+
+        })
+
+    } catch (error) {
+        res.status(500).send({ success: false, message: error.message });
+    }
+}
+
 exports.EditPurchaseOrder = async (req, res) => {
 
     const { invoice, allData } = req.body;

@@ -48,7 +48,7 @@ function FormattedDate() {
 exports.getOrderSummary = async (req, res) => {
     const date = FormattedDate()
     try {
-        const saleOrderSum = await SaleOrder.findOne({
+        const saleOrderSum = await Invoice.findOne({
             attributes: [[Sequelize.fn('SUM', Sequelize.col('total')), 'totalSellPrice']],
             where: {
                 compId: req?.compId,
@@ -57,11 +57,81 @@ exports.getOrderSummary = async (req, res) => {
             },
             raw: true
         });
-        const totalSellPrice = saleOrderSum?.totalSellPrice || 0;
+
+        const purchaseOrderSum = await Invoice.findOne({
+            attributes: [[Sequelize.fn('SUM', Sequelize.col('total')), 'totalSellPrice']],
+            where: {
+                compId: req?.compId,
+                type: 'Purchase items',
+                created_date: date
+            },
+            raw: true
+        });
+
+        const cashCollection = await Invoice.findOne({
+            attributes: [[Sequelize.fn('SUM', Sequelize.col('paidamount')), 'paid']],
+            where: {
+                compId: req?.compId,
+                type: 'Sale',
+                created_date: date
+            },
+            raw: true
+        });
+
+        const onlineCollection = await Invoice.findOne({
+            attributes: [[Sequelize.fn('SUM', Sequelize.col('paidamount')), 'paid']],
+            where: {
+                compId: req?.compId,
+                type: 'Make Payment',
+                created_date: date
+            },
+            raw: true
+        });
+
+        const saleReturn = await Invoice.findOne({
+            attributes: [[Sequelize.fn('SUM', Sequelize.col('total')), 'return']],
+            where: {
+                compId: req?.compId,
+                type: 'Sale Return',
+                created_date: date
+            },
+            raw: true
+        });
+
+        const PurchaseReturn = await Invoice.findOne({
+            attributes: [[Sequelize.fn('SUM', Sequelize.col('total')), 'p_return']],
+            where: {
+                compId: req?.compId,
+                type: 'Return Purchase',
+                created_date: date
+            },
+            raw: true
+        });
+
+        const Expense = await Invoice.findOne({
+            attributes: [[Sequelize.fn('SUM', Sequelize.col('total')), 'expense']],
+            where: {
+                compId: req?.compId,
+                type: 'Expense',
+                created_date: date
+            },
+            raw: true
+        });
+
 
         return res.status(200).send({
             success: true,
-            items: data
+            items: {
+                sale: saleOrderSum?.totalSellPrice || 0,
+                purchase: purchaseOrderSum?.totalSellPrice || 0,
+                cash: cashCollection?.paid || 0,
+                online: onlineCollection?.paid || 0,
+                return: saleReturn?.return || 0,
+                pur_return: PurchaseReturn?.p_return || 0,
+                expense: Expense?.expense || 0,
+                nagad: 0
+
+            }
         })
 
     } catch (error) {
