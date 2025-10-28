@@ -89,7 +89,7 @@ exports.getOrderSummary = async (req, res) => {
         });
 
         const saleReturn = await Invoice.findOne({
-            attributes: [[Sequelize.fn('SUM', Sequelize.col('total')), 'return']],
+            attributes: [[Sequelize.fn('SUM', Sequelize.col('return')), 'return']],
             where: {
                 compId: req?.compId,
                 type: 'Sale Return',
@@ -99,7 +99,7 @@ exports.getOrderSummary = async (req, res) => {
         });
 
         const PurchaseReturn = await Invoice.findOne({
-            attributes: [[Sequelize.fn('SUM', Sequelize.col('total')), 'p_return']],
+            attributes: [[Sequelize.fn('SUM', Sequelize.col('return')), 'p_return']],
             where: {
                 compId: req?.compId,
                 type: 'Return Purchase',

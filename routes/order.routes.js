@@ -22,6 +22,7 @@ module.exports = function (app) {
     app.post('/api/edit/sale/return', jwt.verifyToken, controller.EditSaleReturn);
     
     app.post('/api/edit/purchase/order', jwt.verifyToken, controller.EditPurchaseOrder);
+    app.post('/api/edit/purchase/return', jwt.verifyToken, controller.EditPurchaseReturn);
 
     app.get('/api/search/data/:name', jwt.verifyToken, controller.SearchOrder);
 

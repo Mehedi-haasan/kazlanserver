@@ -18,7 +18,11 @@ exports.createProduct = async (req, res) => {
     const data = await Product.findOne({
       where: {
         name: req.body.name,
-        compId: req.body.compId ? req.body.compId : req.compId
+        compId: req.body.compId ? req.body.compId : req.compId,
+        categoryId: req.body.categoryId,
+        editionId: req.body.editionId,
+        brandId: req.body.brandId,
+        active: true
       }
     })
 
