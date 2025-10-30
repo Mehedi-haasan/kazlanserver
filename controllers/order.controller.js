@@ -8,7 +8,7 @@ const sequelize = db.sequelize;
 const { Op } = require("sequelize");
 
 
-const recalculateNextInvoices = async (userId, currentInvoiceId) => {
+const recalculateNextInvoices = async (userId, currentInvoiceId, mul) => {
     const currentInvoice = await Invoice.findOne({
         where: { userId: userId, id: currentInvoiceId },
     });
@@ -21,7 +21,7 @@ const recalculateNextInvoices = async (userId, currentInvoiceId) => {
             id: { [Op.gt]: currentInvoiceId },
             active: true,
         },
-        order: [["id", "DESC"]],
+        order: [["id", "ASC"]],
     });
 
     // 3️⃣ Prepare array for recalculated invoices
@@ -29,7 +29,43 @@ const recalculateNextInvoices = async (userId, currentInvoiceId) => {
     let previousBalance = currentInvoice.balance;
 
     for (const invoice of nextInvoices) {
-        const newBalance = previousBalance + invoice.total - invoice.paidamount - invoice.return;
+        const newBalance = previousBalance + (invoice.total * mul) - invoice.paidamount - invoice.return;
+
+        // Convert Sequelize instance → plain object
+        const new_invo = invoice.get({ plain: true });
+
+        new_invo.balance = newBalance;
+        await Invoice.update(new_invo, { where: { id: new_invo?.id } });
+        recalculatedInvoices.push(new_invo);
+        previousBalance = newBalance;
+    }
+
+    return recalculatedInvoices;
+};
+
+
+const recalculateReturnNextInvoices = async (userId, currentInvoiceId) => {
+    const currentInvoice = await Invoice.findOne({
+        where: { userId: userId, id: currentInvoiceId },
+    });
+
+    if (!currentInvoice) return [];
+
+    const nextInvoices = await Invoice.findAll({
+        where: {
+            userId: userId,
+            id: { [Op.gt]: currentInvoiceId },
+            active: true,
+        },
+        order: [["id", "ASC"]],
+    });
+
+    // 3️⃣ Prepare array for recalculated invoices
+    const recalculatedInvoices = [];
+    let previousBalance = currentInvoice.balance;
+
+    for (const invoice of nextInvoices) {
+        const newBalance = previousBalance + invoice.paidamount + invoice.return;
 
         // Convert Sequelize instance → plain object
         const new_invo = invoice.get({ plain: true });
@@ -231,11 +267,8 @@ exports.EditSaleOrder = async (req, res) => {
         await Invoice.update(invoice, { where: { id: invoice?.id } });
         const Invo = await Invoice.findOne({ where: { id: invoice?.id } });
         const updated_user = await Customer.findOne({ where: { id: Invo?.userId } });
-        // let updated_invoices = await recalculateNextInvoices(Invo?.userId, Invo?.id)
         if (updated_user) {
             const adjustedBalance = updated_user.balance - invoice?.due;
-            let updated_invoice = { ...invoice };
-            updated_invoice.balance = adjustedBalance;
             await Customer.update(
                 { balance: adjustedBalance },
                 { where: { id: updated_user?.id } }
@@ -304,16 +337,11 @@ exports.EditSaleReturn = async (req, res) => {
             { where: { invoice_id: invoice?.id } }
         );
 
-
-        await Invoice.update(invoice, { where: { id: invoice?.id } });
+        await Invoice.update(invoicenew_invooice, { where: { id: invoice?.id } });
         const Invo = await Invoice.findOne({ where: { id: invoice?.id } });
         const updated_user = await Customer.findOne({ where: { id: invoice?.userId } });
-        // let updated_invoices = await recalculateNextInvoices(Invo?.userId, Invo?.id)
         if (updated_user) {
             const adjustedBalance = updated_user.balance + invoice?.return + invoice?.paidamount;
-            let updated_invoice = { ...invoice };
-            updated_invoice.balance = adjustedBalance;
-            await Invoice.update(updated_invoice, { where: { id: invoice?.id } });
             await Customer.update(
                 { balance: adjustedBalance },
                 { where: { id: updated_user?.id } }
@@ -382,16 +410,11 @@ exports.EditPurchaseReturn = async (req, res) => {
             { where: { invoice_id: invoice?.id } }
         );
 
-
         await Invoice.update(invoice, { where: { id: invoice?.id } });
         const Invo = await Invoice.findOne({ where: { id: invoice?.id } });
         const updated_user = await Customer.findOne({ where: { id: invoice?.userId } });
-        // let updated_invoices = await recalculateNextInvoices(Invo?.userId, Invo?.id)
         if (updated_user) {
             const adjustedBalance = updated_user.balance - invoice?.total - invoice?.paidamount;
-            let updated_invoice = { ...invoice };
-            updated_invoice.balance = adjustedBalance;
-            await Invoice.update(updated_invoice, { where: { id: invoice?.id } });
             await Customer.update(
                 { balance: adjustedBalance },
                 { where: { id: updated_user?.id } }
@@ -459,15 +482,22 @@ exports.EditPurchaseOrder = async (req, res) => {
         );
 
 
+        const prevInvoice = await Invoice.findOne({
+            where: {
+                userId: invoice?.userId,
+                id: { [Op.lt]: invoice?.id },
+                active: true,
+            },
+            order: [["id", "DESC"]],
+        });
+
+
+
         await Invoice.update(invoice, { where: { id: invoice?.id } });
         const Invo = await Invoice.findOne({ where: { id: invoice?.id } });
         const updated_user = await Customer.findOne({ where: { id: Invo?.userId } });
-        // let updated_invoices = await recalculateNextInvoices(Invo?.userId, Invo?.id)
         if (updated_user) {
-            let updated_invoice = { ...invoice };
             const adjustedBalance = updated_user.balance + invoice?.due;
-            updated_invoice.balance = adjustedBalance;
-            await Invoice.update(updated_invoice, { where: { id: invoice?.id } });
             await Customer.update(
                 { balance: adjustedBalance },
                 { where: { id: updated_user?.id } }
