@@ -31,4 +31,7 @@ module.exports = function (app) {
     app.post('/api/postget/offline/data', jwt.verifyToken, controller.OfflineToOnline)
     app.delete('/api/delete/offline/data', jwt.verifyToken, controller.DeleteLocalData)
 
+
+    app.post('/api/invoice/recalculate', jwt.verifyToken, controller.recalculateNextInvoices);
+
 }    

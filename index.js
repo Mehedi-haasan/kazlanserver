@@ -38,9 +38,9 @@ require('./routes/customer.routes')(app);
 require('./routes/attribute.routes')(app);
 
 
-db.sequelize.sync({ force: true }).then(async () => {
-    await initStates();
-});
+// db.sequelize.sync({ force: true }).then(async () => {
+//     await initStates();
+// });
 
 const initStates = async () => {
     await db.state.create({

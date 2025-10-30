@@ -5,79 +5,80 @@ const Product = db.product;
 const Notification = db.notification;
 const Invoice = db.invoice;
 const sequelize = db.sequelize;
-const { Op } = require("sequelize");
+const { Op, where } = require("sequelize");
 
 
-const recalculateNextInvoices = async (userId, currentInvoiceId, mul) => {
-    const currentInvoice = await Invoice.findOne({
-        where: { userId: userId, id: currentInvoiceId },
-    });
-
-    if (!currentInvoice) return [];
-
-    const nextInvoices = await Invoice.findAll({
+const ReCalculate = async (userId) => {
+    const first_invoice = await Invoice.findOne({
         where: {
             userId: userId,
-            id: { [Op.gt]: currentInvoiceId },
             active: true,
         },
         order: [["id", "ASC"]],
     });
 
-    // 3️⃣ Prepare array for recalculated invoices
-    const recalculatedInvoices = [];
-    let previousBalance = currentInvoice.balance;
-
-    for (const invoice of nextInvoices) {
-        const newBalance = previousBalance + (invoice.total * mul) - invoice.paidamount - invoice.return;
-
-        // Convert Sequelize instance → plain object
-        const new_invo = invoice.get({ plain: true });
-
-        new_invo.balance = newBalance;
-        await Invoice.update(new_invo, { where: { id: new_invo?.id } });
-        recalculatedInvoices.push(new_invo);
-        previousBalance = newBalance;
-    }
-
-    return recalculatedInvoices;
-};
-
-
-const recalculateReturnNextInvoices = async (userId, currentInvoiceId) => {
-    const currentInvoice = await Invoice.findOne({
-        where: { userId: userId, id: currentInvoiceId },
-    });
-
-    if (!currentInvoice) return [];
-
     const nextInvoices = await Invoice.findAll({
         where: {
             userId: userId,
-            id: { [Op.gt]: currentInvoiceId },
             active: true,
         },
         order: [["id", "ASC"]],
     });
 
-    // 3️⃣ Prepare array for recalculated invoices
+    let user = await Customer.findOne({
+        where: {
+            id: userId
+        }
+    })
+
     const recalculatedInvoices = [];
-    let previousBalance = currentInvoice.balance;
+    let previousBalance = first_invoice.balance;
 
-    for (const invoice of nextInvoices) {
-        const newBalance = previousBalance + invoice.paidamount + invoice.return;
-
-        // Convert Sequelize instance → plain object
-        const new_invo = invoice.get({ plain: true });
-
-        new_invo.balance = newBalance;
-        await Invoice.update(new_invo, { where: { id: new_invo?.id } });
-        recalculatedInvoices.push(new_invo);
-        previousBalance = newBalance;
+    if (user?.usertype === "Customer") {
+        for (const invoice of nextInvoices) {
+            const newBalance = previousBalance + (invoice.total*-1) - invoice.paidamount - invoice.return;
+            const new_invo = invoice.get({ plain: true });
+            new_invo.balance = newBalance;
+            await Invoice.update(new_invo, { where: { id: new_invo?.id } });
+            recalculatedInvoices.push(new_invo);
+            previousBalance = newBalance;
+        }
+    } else {
+        for (const invoice of nextInvoices) {
+            const newBalance = previousBalance + invoice.total - invoice.paidamount - invoice.return;
+            const new_invo = invoice.get({ plain: true });
+            new_invo.balance = newBalance;
+            await Invoice.update(new_invo, { where: { id: new_invo?.id } });
+            recalculatedInvoices.push(new_invo);
+            previousBalance = newBalance;
+        }
     }
 
-    return recalculatedInvoices;
+    const last_invoice = await Invoice.findOne({
+        where: {
+            userId: userId,
+            active: true,
+        },
+        order: [["id", "DESC"]],
+    });
+
+    await Customer.update({ balance: last_invoice?.balance }, { where: { id: userId } });
+
+    return recalculatedInvoices
+}
+
+exports.recalculateNextInvoices = async (req, res) => {
+    let recalculatedInvoices = ReCalculate(req?.body?.userId)
+    return res.status(200).send({
+        success: true,
+        message: "Invoice Calculate Successfull",
+        invoice: recalculatedInvoices
+
+    })
 };
+
+
+
 
 
 exports.CreateOrder = async (req, res) => {
@@ -291,7 +292,7 @@ exports.EditSaleOrder = async (req, res) => {
                 );
             }
         }));
-
+        await ReCalculate(invoice?.userId)
         return res.status(200).send({
             success: true,
             message: "Update Order Successfull",
@@ -364,7 +365,7 @@ exports.EditSaleReturn = async (req, res) => {
                 );
             }
         }));
-
+        await ReCalculate(invoice?.userId)
         return res.status(200).send({
             success: true,
             message: "Update Order Successfull",
@@ -437,7 +438,7 @@ exports.EditPurchaseReturn = async (req, res) => {
                 );
             }
         }));
-
+        await ReCalculate(invoice?.userId)
         return res.status(200).send({
             success: true,
             message: "Update Order Successfull",
@@ -520,7 +521,7 @@ exports.EditPurchaseOrder = async (req, res) => {
                 );
             }
         }));
-
+        await ReCalculate(invoice?.userId)
         return res.status(200).send({
             success: true,
             message: "Update Order Successfull",
