@@ -45,7 +45,7 @@ require('./routes/attribute.routes')(app);
 const initStates = async () => {
     await db.state.create({
         active: true,
-        name: "Madaripur Sadar",
+        name: "মাদারীপুর সদর",
     });
 
     await db.user.create({

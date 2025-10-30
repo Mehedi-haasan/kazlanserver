@@ -231,7 +231,7 @@ exports.EditSaleOrder = async (req, res) => {
         await Invoice.update(invoice, { where: { id: invoice?.id } });
         const Invo = await Invoice.findOne({ where: { id: invoice?.id } });
         const updated_user = await Customer.findOne({ where: { id: Invo?.userId } });
-        let updated_invoices = await recalculateNextInvoices(Invo?.userId, Invo?.id)
+        // let updated_invoices = await recalculateNextInvoices(Invo?.userId, Invo?.id)
         if (updated_user) {
             const adjustedBalance = updated_user.balance - invoice?.due;
             let updated_invoice = { ...invoice };
@@ -308,7 +308,7 @@ exports.EditSaleReturn = async (req, res) => {
         await Invoice.update(invoice, { where: { id: invoice?.id } });
         const Invo = await Invoice.findOne({ where: { id: invoice?.id } });
         const updated_user = await Customer.findOne({ where: { id: invoice?.userId } });
-        let updated_invoices = await recalculateNextInvoices(Invo?.userId, Invo?.id)
+        // let updated_invoices = await recalculateNextInvoices(Invo?.userId, Invo?.id)
         if (updated_user) {
             const adjustedBalance = updated_user.balance + invoice?.return + invoice?.paidamount;
             let updated_invoice = { ...invoice };
@@ -386,7 +386,7 @@ exports.EditPurchaseReturn = async (req, res) => {
         await Invoice.update(invoice, { where: { id: invoice?.id } });
         const Invo = await Invoice.findOne({ where: { id: invoice?.id } });
         const updated_user = await Customer.findOne({ where: { id: invoice?.userId } });
-        let updated_invoices = await recalculateNextInvoices(Invo?.userId, Invo?.id)
+        // let updated_invoices = await recalculateNextInvoices(Invo?.userId, Invo?.id)
         if (updated_user) {
             const adjustedBalance = updated_user.balance - invoice?.total - invoice?.paidamount;
             let updated_invoice = { ...invoice };
@@ -462,7 +462,7 @@ exports.EditPurchaseOrder = async (req, res) => {
         await Invoice.update(invoice, { where: { id: invoice?.id } });
         const Invo = await Invoice.findOne({ where: { id: invoice?.id } });
         const updated_user = await Customer.findOne({ where: { id: Invo?.userId } });
-        let updated_invoices = await recalculateNextInvoices(Invo?.userId, Invo?.id)
+        // let updated_invoices = await recalculateNextInvoices(Invo?.userId, Invo?.id)
         if (updated_user) {
             let updated_invoice = { ...invoice };
             const adjustedBalance = updated_user.balance + invoice?.due;
