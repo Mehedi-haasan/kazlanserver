@@ -36,7 +36,7 @@ const ReCalculate = async (userId) => {
 
     if (user?.usertype === "Customer") {
         for (const invoice of nextInvoices) {
-            const newBalance = previousBalance + (invoice.total*-1) - invoice.paidamount - invoice.return;
+            const newBalance = previousBalance + (invoice.total*-1) + invoice.paidamount + invoice.return;
             const new_invo = invoice.get({ plain: true });
             new_invo.balance = newBalance;
             await Invoice.update(new_invo, { where: { id: new_invo?.id } });
