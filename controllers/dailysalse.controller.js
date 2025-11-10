@@ -148,7 +148,7 @@ exports.getSingleInvoice = async (req, res) => {
         })
         let user = await db.customer.findAll({
             where: {
-                compId: req?.compId,
+                id: data?.userId,
                 active: true
             }
         })
@@ -815,6 +815,9 @@ exports.RecentInvoice = async (req, res) => {
             limit: pageSize,
             offset: offset,
             order: [['createdAt', 'DESC']],
+            include: [{
+                model: db.customer
+            }]
         });
 
         const totalInvoices = await Invoice.count({ where: { compId: req?.compId } });

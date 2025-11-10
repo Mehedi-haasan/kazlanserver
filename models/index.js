@@ -100,6 +100,14 @@ db.saleorder.belongsTo(db.invoice, {
   onDelete: 'CASCADE',
 });
 
+db.customer.hasMany(db.invoice, {
+  foreignKey: "userId",
+  onDelete: 'CASCADE',
+});
+db.invoice.belongsTo(db.customer, {
+  foreignKey: "userId",
+  onDelete: 'CASCADE',
+});
 
 db.brand.hasMany(db.product, {
   foreignKey: "brandId",
