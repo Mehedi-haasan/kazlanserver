@@ -12,8 +12,8 @@ module.exports = function (app) {
 
     app.post("/api/create/customers", [jwt.verifyToken], controller.CreateCustomer);
 
-    app.get("/api/get/customers/:page/:pageSize/:customertype", [jwt.verifyToken], controller.GetCustomerWithPage);
-    app.get("/api/get/suppliers/:page/:pageSize", [jwt.verifyToken], controller.GetSupplierWithPage);
+    app.get("/api/get/customers/:page/:pageSize/:customertype/:compId", [jwt.verifyToken], controller.GetCustomerWithPage);
+    app.get("/api/get/suppliers/:page/:pageSize/:compId", [jwt.verifyToken], controller.GetSupplierWithPage);
 
 
     app.get("/api/get/customers/:stateId", [jwt.verifyToken], controller.GetCustomerWithState);

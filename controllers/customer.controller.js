@@ -128,6 +128,15 @@ exports.GetCustomerWithPage = async (req, res) => {
         if (req.params.customertype === "Normal" || req.params.customertype === "Party") {
             whereCondition['customertype'] = req.params.customertype;
         }
+        if (
+            req.params.compId !== null &&
+            req.params.compId !== undefined &&
+            req.params.compId !== "null" &&
+            req.params.compId !== "undefined"
+        ) {
+            whereCondition['compId'] = req.params.compId;
+        }
+        console.log(whereCondition, req.params.compId)
 
         let data = await db.customer.findAll({
             limit: pageSize,
@@ -163,13 +172,19 @@ exports.GetSupplierWithPage = async (req, res) => {
     const pageSize = parseInt(req.params.pageSize) || 10;
     const offset = (page - 1) * pageSize;
     try {
+        let whereCondition = {
+            active: true,
+            compId: req.compId,
+            usertype: "Supplier",
+        };
+
+        if (req.params.compId !== null && req.params.compId !== undefined) {
+            whereCondition['compId'] = req.params.compId;
+        }
+
         let data = await db.customer.findAll({
             limit: pageSize,
-            where: {
-                active: true,
-                compId: req.compId,
-                usertype: "Supplier"
-            },
+            where: whereCondition,
             order: [['createdAt', 'DESC']],
             offset: offset,
             include: [
@@ -200,20 +215,20 @@ exports.CreateCustomer = async (req, res) => {
     const { name, phone, bankname, accountname, accountnumber, balance, customertype, shopname,
         balance_type, address, email, stateId, usertype, image_url } = req.body;
     try {
-        const existcustomer = await db.customer.findOne({
-            where: {
-                name: req.body.name,
-                compId: req.body.compId ? req.body.compId : req.compId,
-                usertype: usertype,
-            }
-        })
+        // const existcustomer = await db.customer.findOne({
+        //     where: {
+        //         name: req.body.name,
+        //         compId: req.body.compId ? req.body.compId : req.compId,
+        //         usertype: usertype,
+        //     }
+        // })
 
-        if (existcustomer) {
-            return res.status(400).send({
-                success: false,
-                message: `${usertype === "Supplier" ? "Supplier already exists" : "Customer already exists"}`
-            });
-        }
+        // if (existcustomer) {
+        //     return res.status(400).send({
+        //         success: false,
+        //         message: `${usertype === "Supplier" ? "Supplier already exists" : "Customer already exists"}`
+        //     });
+        // }
 
         let userBalance = 0
         if (balance_type === "You Receive") {
@@ -371,16 +386,16 @@ exports.UpdateCustomerBalance = async (req, res) => {
             methodname: req.body.methodname,
             customername: customer?.name,
             previousdue: curent,
-            paidamount: paid_amount*-1,
+            paidamount: paid_amount * -1,
             due: 0,
-            return: final_return*-1,
+            return: final_return * -1,
             status: req.body.status,
             type: req.body.type,
             deliverydate: getFormattedDate(),
             balance: curent,
             special_discount: 0,
             sup_invo: '',
-            note:req?.body?.note
+            note: req?.body?.note
         });
 
         if (req?.params?.type === "1") {
@@ -456,7 +471,7 @@ exports.UpdateSupplierBalance = async (req, res) => {
             balance: curent,
             special_discount: 0,
             sup_invo: '',
-            note:req?.body?.note
+            note: req?.body?.note
         });
 
         if (req?.params?.type === "2") {
@@ -677,7 +692,7 @@ exports.GetCustomerDue = async (req, res) => {
             success: true,
             balance: data?.balance,
             phone: data?.phone,
-            name:data?.name
+            name: data?.name
         })
 
     } catch (error) {
@@ -687,50 +702,50 @@ exports.GetCustomerDue = async (req, res) => {
 
 
 exports.PaymentHistory = async (req, res) => {
-  try {
-    const { fromDate, toDate } = req.body;
+    try {
+        const { fromDate, toDate } = req.body;
 
-    // Ensure fromDate and toDate are valid date strings like "2025-10-01"
-    if (!fromDate || !toDate) {
-      return res.status(400).send({ success: false, message: "fromDate and toDate are required." });
+        // Ensure fromDate and toDate are valid date strings like "2025-10-01"
+        if (!fromDate || !toDate) {
+            return res.status(400).send({ success: false, message: "fromDate and toDate are required." });
+        }
+
+        // Fetch customer info
+        const data = await db.customer.findOne({ where: { id: req.params.id } });
+
+        // Find the last opening record before the 'fromDate'
+        const opening = await db.invoice.findOne({
+            where: {
+                userId: req.params.id,
+                created_date: { [Op.lt]: fromDate },
+            },
+            order: [["createdAt", "DESC"]],
+        });
+
+        // Find all invoices between fromDate and toDate
+        const history = await db.invoice.findAll({
+            where: {
+                userId: req.params.id,
+                created_date: {
+                    [Op.between]: [fromDate, toDate],
+                },
+            },
+            order: [["createdAt", "DESC"]],
+        });
+
+        // Send the response
+        return res.status(200).send({
+            success: true,
+            items: data,
+            opening,
+            history,
+            count: history?.length || 0
+        });
+
+    } catch (error) {
+        console.error("PaymentHistory Error:", error);
+        return res.status(500).send({ success: false, message: error.message });
     }
-
-    // Fetch customer info
-    const data = await db.customer.findOne({ where: { id: req.params.id } });
-
-    // Find the last opening record before the 'fromDate'
-    const opening = await db.invoice.findOne({
-      where: {
-        userId: req.params.id,
-        created_date: { [Op.lt]: fromDate },
-      },
-      order: [["createdAt", "DESC"]],
-    });
-
-    // Find all invoices between fromDate and toDate
-    const history = await db.invoice.findAll({
-      where: {
-        userId: req.params.id,
-        created_date: {
-          [Op.between]: [fromDate, toDate],
-        },
-      },
-      order: [["createdAt", "DESC"]],
-    });
-
-    // Send the response
-    return res.status(200).send({
-      success: true,
-      items: data,
-      opening,
-      history,
-      count: history?.length || 0
-    });
-
-  } catch (error) {
-    console.error("PaymentHistory Error:", error);
-    return res.status(500).send({ success: false, message: error.message });
-  }
 };
 
 

@@ -32,7 +32,8 @@ exports.GetAttributeTypeAll = async (req, res) => {
         let data = await db.attributetype.findAll({
             attributes: ['id', 'name'],
             where: {
-                active: true
+                active: true,
+                ccompId: req?.compId
             },
             order: [['createdAt', 'DESC']],
         })
@@ -104,16 +105,22 @@ exports.GetAttributeWithPage = async (req, res) => {
 
 exports.GetAttributeTree = async (req, res) => {
     try {
+        const compId = req.compId;
         let data = await db.attributetype.findAll({
-            where: { active: true },
+            where: {
+                active: true,
+                ccompId: compId
+            },
             order: [['createdAt', 'DESC']],
             include: [
                 {
                     model: db.attribute,
+                    where: { compId: compId },
                     attributes: ['id', 'name'],
                     include: [
                         {
                             model: db.attributevalue,
+                            where: { compId: compId },
                             attributes: ['id', 'name']
                         }
                     ]

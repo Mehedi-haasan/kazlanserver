@@ -425,7 +425,7 @@ exports.CreateExpense = async (req, res) => {
             shopname: req.body.shopname,
             createdby: req.userId,
             creator: req?.user,
-            userId: 0,
+            userId: 142,
             total: req.body.paid,
             paymentmethod: "",
             methodname: req.body.methodname,
@@ -945,6 +945,9 @@ exports.OrderFromTo = async (req, res) => {
     }
     if (req.body.type !== null && req.body.type !== undefined) {
         whereClouse['type'] = req.body.type;
+    }
+    if (req.body.comId !== null && req.body.comId !== undefined) {
+        whereClouse['compId'] = req.body.comId;
     }
 
     try {

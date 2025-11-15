@@ -75,14 +75,23 @@ exports.getProductTemplete = async (req, res) => {
   const brandId = parseInt(req.params.brandId);
   const catId = parseInt(req.params.catId);
   const offset = (page - 1) * pageSize;
-  const compId = req.params.compId ? req.params.compId : req?.compId
 
-  const whereClause = {};
+  const whereClause = {
+    compId: req?.compId
+  };
+
   whereClause['active'] = true
-  if (!isNaN(compId)) whereClause.compId = compId;
   if (!isNaN(brandId)) whereClause.brandId = brandId;
   if (!isNaN(catId)) whereClause.categoryId = catId;
 
+  if (
+    req.params.compId !== null &&
+    req.params.compId !== undefined &&
+    req.params.compId !== "null" &&
+    req.params.compId !== "undefined"
+  ) {
+    whereCondition['compId'] = req.params.compId;
+  }
   try {
     const data = await Product.findAll({
       where: whereClause,
@@ -102,7 +111,8 @@ exports.getProductTemplete = async (req, res) => {
     return res.status(200).send({
       success: true,
       items: data,
-      count: totalCount
+      count: totalCount,
+      compId: whereClause
     });
   } catch (error) {
     return res.status(500).send({ success: false, message: error.message });
@@ -194,7 +204,10 @@ exports.SecondSearchProduct = async (req, res) => {
   const isValid = (value) => value !== undefined && value !== null && value !== "null" && value !== "undefined";
 
   if (isValid(req.params.name)) {
-    condition.name = { [Op.like]: `%${req.params.name}%` };
+    condition[Op.or] = [
+      { name: { [Op.like]: `%${req.params.name}%` } },
+      { id: { [Op.like]: `%${req.params.name}%` } }
+    ];
   }
 
   if (isValid(req.params.brand)) {

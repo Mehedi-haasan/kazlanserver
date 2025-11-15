@@ -38,7 +38,8 @@ module.exports = (sequelize, Sequelize) => {
             type: Sequelize.INTEGER
         },
         total: {
-            type: Sequelize.INTEGER
+            type: Sequelize.INTEGER,
+            allowNull: true,
         },
         packing: {
             type: Sequelize.INTEGER
